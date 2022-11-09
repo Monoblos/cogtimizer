@@ -245,6 +245,8 @@
           expRadiusBoost: initialValues.expRadiusBoost,
           flaggyRadiusBoost: initialValues.flaggyRadiusBoost,
           boostRadius: initialValues.boostRadius,
+		  flagSpeed: initialValues.flagSpeed,
+		  nothing: initialValues.nothing, // Description: Nothing LoL
           fixed: initialValues.fixed,
           blocked: initialValues.blocked,
           _position: null,
@@ -597,7 +599,7 @@
             boostRadius: c.h,
 			flagSpeed: c.j,
 			nothing: c.k,
-            fixed: c.h === "everything",
+            fixed: c.h === "everything" || c.j > 0,
             blocked: false
           });
         });
