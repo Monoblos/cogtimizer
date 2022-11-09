@@ -101,6 +101,16 @@ ul.menu > li#cogbtn {
     max-height: 426px;
 }
 
+#steps > p > span {
+    background-position: center;
+    background-size: contain;
+    height: 30px;
+    width: 30px;
+    display: inline-block;
+    position: relative;
+    top: 10px;
+}
+
 table.cogboard tr>td {
     position: relative;
     display: inline-block;

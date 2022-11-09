@@ -130,7 +130,7 @@
         ["co"]: "Column",
         ["cr"]: "Corner",
       };
-	  const YIN_MAP = {
+	    const YIN_MAP = {
         ["A00"]: "Yin_Top_Left_Cog",
         ["A01"]: "Yin_Top_Right_Cog",
         ["A02"]: "Yin_Bottom_Left_Cog",
@@ -309,8 +309,13 @@
       }
 	  
 	    f.printMove = (board, cog1, cog2, pos1, pos2) => {
-        const toAdd = createElem("p", "color: white");
-        toAdd.innerText = `Switch ${pos1.location}[${pos1.x + 1}|${pos1.y + 1}] (${cog1.buildRate || 0}:${cog1.expBonus || 0}:${cog1.flaggy || 0}) with ${pos2.location}[${pos2.x + 1}|${pos2.y + 1}] (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0})`;
+        const toAdd = createElem("p");
+        toAdd.innerHTML = `Switch ${pos1.location} \
+        [${pos1.x + 1}|${pos1.y + 1}] \
+        (${cog1.buildRate || 0}:${cog1.expBonus || 0}:${cog1.flaggy || 0}) <span style="background-image:url('icons/${cog1.icon}.png')"></span> with \
+        ${pos2.location} \
+        [${pos2.x + 1}|${pos2.y + 1}] \
+        (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0}) <span style="background-image:url('icons/${cog2.icon}.png')"></span>`;
         toAdd.onclick = () => f.printBoard(board, pos1, pos2);
         steps.appendChild(toAdd);
       }
@@ -327,14 +332,14 @@
             
             const cog = board[i][j];
             let border = "black";
-			let cssClass = "";
+			      let cssClass = "";
             if (cog.blocked) {
               // border = "red";
             } else if (cog.fixed) {
               border = "yellow";
             } else if ((cord1.location === "board" && i === cord1.y && j === cord1.x) || (cord2.location === "board" && i === cord2.y && j === cord2.x)) {
               border = "lightgreen";
-			  cssClass = "toMove";
+			        cssClass = "toMove";
             }
 
             // TODO: Move to css
@@ -343,20 +348,20 @@
             col.style.backgroundImage = `url("${(!cog.blocked && cogBg) || cogBlank}")`;
             col.style.backgroundPosition = "center";
             col.style.backgroundSize = "cover";
-			if (cssClass) {
-			  col.classList.add(cssClass);
-			}
+            if (cssClass) {
+              col.classList.add(cssClass);
+            }
 
             if (!cog.blocked) {
               const div = createElem("div");
               div.style.height = "100%";
-			  if (cog.icon === "Blank") {
-			    div.style.backgroundImage = `url("${cogBlank}")`;
-			  } else if (cog.icon.startsWith("Player_")) {
+              if (cog.icon === "Blank") {
+                div.style.backgroundImage = `url("${cogBlank}")`;
+              } else if (cog.icon.startsWith("Player_")) {
                 div.innerHTML = `<div style="word-break: break-all;font-size: 8px;line-height: 1.4;padding: 2px;">${cog.icon.substr(7)}` + "</div>";
-			  } else {
+              } else {
                 div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
-			  }
+              }
               div.style.backgroundPosition = "center";
               div.style.color = "white";
 
@@ -522,8 +527,8 @@
             expRadiusBoost: c.f,
             flaggyRadiusBoost: c.g,
             boostRadius: c.h,
-			flagSpeed: c.j,
-			nothing: c.k,
+            flagSpeed: c.j,
+            nothing: c.k,
             fixed: c.h === "everything" || c.j > 0,
             blocked: false
           });
