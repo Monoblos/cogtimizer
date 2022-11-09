@@ -136,7 +136,7 @@
       </div>
       <div class="border"></div>
       <div id="currentBoard"></div>
-      <div id="steps" style="overflow: auto;min-height: 100px;"></div>
+      <div id="steps" style="overflow: auto;min-height: 100px;max-height: 410px;"></div>
     </div>
     <p id="start"></p>
     <p id="end"></p>
@@ -144,6 +144,42 @@
       const ROWS = 8;
       const COLUMNS = 12;
       const OPTIMIZABLE = ["buildRate", "expBonus", "flaggy"];
+	  const ICON_QUALITY_MAP = {
+        ["0"]: "Nooby",
+        ["1"]: "Decent",
+        ["2"]: "Superb",
+        ["3"]: "Ultimate",
+        ["Y"]: "Yang",
+        ["Z"]: "Yin"
+	  };
+      const ICON_TYPE_MAP = {
+        ["A00"]: "Cog",
+        ["A0"]: "CogB",
+        ["A1"]: "Average",
+        ["A2"]: "Spur",
+        ["A2"]: "Stacked",
+        ["A2"]: "Deckered",
+        ["B0"]: "Double",
+        ["B1"]: "Trips",
+        ["B2"]: "Trabble",
+        ["B3"]: "Quad",
+        ["B3"]: "Penta",
+        ["ad"]: "Adjacent",
+        ["di"]: "Diagonal",
+        ["up"]: "Up",
+        ["do"]: "Down",
+        ["le"]: "Left",
+        ["ri"]: "Right",
+        ["ro"]: "Row",
+        ["co"]: "Column",
+        ["cr"]: "Corner",
+      };
+	  const YIN_MAP = {
+        ["A00"]: "Yin_Top_Left_Cog",
+        ["A01"]: "Yin_Top_Right_Cog",
+        ["A02"]: "Yin_Bottom_Left_Cog",
+        ["A03"]: "Yin_Bottom_Right_Cog"
+	  };
       
       const getInput = (id) => Number.parseInt(document.getElementById(id).value);
       const getFlaggyShop = getInput.bind(null, "flaggyShop");
@@ -151,34 +187,6 @@
       const cogBlank = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAmCAYAAACoPemuAAABhWlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TpUWrDnYQcchQO1koKuIoVSyChdJWaNXB5NIvaNKQpLg4Cq4FBz8Wqw4uzro6uAqC4AeIo5OToouU+L+k0CLWg+N+vLv3uHsHCI0KU82eKKBqlpGKx8RsblX0vaIffgwiirDETD2RXsyg6/i6h4evdxGe1f3cn2NAyZsM8IjEc0w3LOIN4plNS+e8TxxkJUkhPieeMOiCxI9cl11+41x0WOCZQSOTmicOEovFDpY7mJUMlXiaOKSoGuULWZcVzluc1UqNte7JXxjIaytprtMcQxxLSCAJETJqKKMCCxFaNVJMpGg/1sU/6viT5JLJVQYjxwKqUCE5fvA/+N2tWZiadJMCMaD3xbY/xgHfLtCs2/b3sW03TwDvM3Cltf3VBjD7SXq9rYWOgKFt4OK6rcl7wOUOMPKkS4bkSF6aQqEAvJ/RN+WA4Vugb83trbWP0wcgQ10t3wAHh0C4SNnrXd7t7+zt3zOt/n4AuHlyw22PBoIAAAAGYktHRAD/AP8A/6C9p5MAAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQfmCwgOMhatl4frAAAAGXRFWHRDb21tZW50AENyZWF0ZWQgd2l0aCBHSU1QV4EOFwAAARNJREFUWMPtmM0KgzAMxzMJgiAivsQeZI+y9xdRURBhO+wwKWmSxh56SI7a/vPLh2nx8X49P1CgIQDA0NVFQY3zARUUag5m6jFNzS12p3cxNwylYQFEDkgjqAkgXKPRRU6AchqKck5i0JrgMXQiZUADG3tO7R3ng9yPlFhqf8XWa7NLZRAlQQkyx6khZowilyCt4Ny+ad3/YFLjD12dpczXgDktnNY9eSbdmXFUVSi96o5wjgEc+yqLOCuzZMyvPQ7GzCxqMqBFqG+bpPWcxbQwVTgU0s5BLRALJsFYgaSgru9Rcta3jTkrqTrXNqlCqFylsmZ4WndYthNw2U4A2LOD+BxzMAdzMAdzMMPfnt+xVJZ9ATWPsYm30CgcAAAAAElFTkSuQmCC";
       const cogBg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAmCAYAAACoPemuAAABhWlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TpUWrDnYQcchQO1koKuIoVSyChdJWaNXB5NIvaNKQpLg4Cq4FBz8Wqw4uzro6uAqC4AeIo5OToouU+L+k0CLWg+N+vLv3uHsHCI0KU82eKKBqlpGKx8RsblX0vaIffgwiirDETD2RXsyg6/i6h4evdxGe1f3cn2NAyZsM8IjEc0w3LOIN4plNS+e8TxxkJUkhPieeMOiCxI9cl11+41x0WOCZQSOTmicOEovFDpY7mJUMlXiaOKSoGuULWZcVzluc1UqNte7JXxjIaytprtMcQxxLSCAJETJqKKMCCxFaNVJMpGg/1sU/6viT5JLJVQYjxwKqUCE5fvA/+N2tWZiadJMCMaD3xbY/xgHfLtCs2/b3sW03TwDvM3Cltf3VBjD7SXq9rYWOgKFt4OK6rcl7wOUOMPKkS4bkSF6aQqEAvJ/RN+WA4Vugb83trbWP0wcgQ10t3wAHh0C4SNnrXd7t7+zt3zOt/n4AuHlyw22PBoIAAAAGYktHRAD/AP8A/6C9p5MAAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQfmCwgOOyi9NCEJAAAAGXRFWHRDb21tZW50AENyZWF0ZWQgd2l0aCBHSU1QV4EOFwAAAVRJREFUWMPtmDEKwjAUhp/liS09gFcoODg6eYFunsClZ/ASXsFLuHgBvYLg2FXcCmJLBR3EEmOal6TBRsibSpr8/5f3khAyWC9nD3AwEABgszsBAECWJs33r4P1ztIEAnA08E3oQrAcH6XsM1iGLE1eYFSMwqGRWVXW3UppE0akYQKIMiAVQZUJ8H1UdFEmIDLlRWUmbdAqk0fehMqACmxbu2jsKBwKx6NITHd9tfVXza4og0gJUpBddp5MAylyCtIUnBqHqgu/KmsrZWYnLNNC3S1vAkdVRaQXdBG2cQC37UonbhdWMvar8GB/BxZHCHH0fc7jpSi1ha63u1Z/WYi0LkVJXxR5YV6IMtYBIi+KFIwpEDUp9j+qmJlmRVeHXSaBbXNb8IFLUP4c82AezIOZvl3MJ+OmYX889wLCMjQZ2x5y2B7y3rPEcjhbysFqMXXycfgJ3ImUN+Kk6UcAAAAASUVORK5CYII=";
 
-      /* Cog<quality><Type>
-       * Qualities:
-       *   0 Nooby
-       *   1 Decent
-       *   2 Superb
-       *   3 Ultimate
-       * Types:
-       *   A00 Broken
-       *   B0  Double
-       *   B1  Triple
-       * 
-       *   ad  Adjacent
-       *   di  Diagonal
-       *   up  Up
-       */
-      const cogIconMap = { 
-        Blank: cogBlank,
-        Cog0A00: "https://idleon.wiki/wiki/images/e/e3/Cog_Nooby.png",
-        Cog1A00: "https://idleon.wiki/wiki/images/5/5e/Cog_Decent.png",
-        Cog0B0: "https://idleon.wiki/wiki/images/3/31/Double_Nooby.png",
-        Cog0B1: "https://idleon.wiki/wiki/images/d/d4/Trips_Nooby.png",
-        Cog1B1: "https://idleon.wiki/wiki/images/3/3c/Trips_Decent.png",
-        Cog0ad: "https://idleon.wiki/wiki/images/9/90/Adjacent_Nooby.png",
-        Cog0di: "https://idleon.wiki/wiki/images/d/df/Diagonal_Nooby.png",
-        Cog1ad: "https://idleon.wiki/wiki/images/4/4c/Adjacent_Decent.png",
-        Cog1di: "https://idleon.wiki/wiki/images/b/b5/Diagonal_Decent.png",
-        Cog1up: "https://idleon.wiki/wiki/images/6/66/Up_Decent.png"
-      };
       const createElem = function createElem(tagName, style=undefined) {
         const elem = document.createElement(tagName);
         if (style) {
@@ -209,7 +217,7 @@
           position(keyNum) {
             if (this._position && !keyNum) return this._position;
             keyNum = keyNum || Number.parseInt(this.key);
-            const location = keyNum >= 95 ? keyNum <= 107 ? "build" : "spare" : "board";
+            const location = keyNum >= 96 ? keyNum <= 107 ? "build" : "spare" : "board";
             let perRow = 3;
             let offset = 108;
             if (location === "board") {
@@ -342,8 +350,8 @@
         return res;
       }
 	  
-	    f.printMove = (board, cog1, cog2, pos1, pos2) => {
-        const toAdd = document.createElement("p");
+	  f.printMove = (board, cog1, cog2, pos1, pos2) => {
+        const toAdd = createElem("p", "color: white");
         toAdd.innerText = `Switch ${pos1.location}[${pos1.x + 1}|${pos1.y + 1}] (${cog1.buildRate || 0}:${cog1.expBonus || 0}:${cog1.flaggy || 0}) with ${pos2.location}[${pos2.x + 1}|${pos2.y + 1}] (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0})`;
         toAdd.onclick = () => f.printBoard(board, pos1, pos2);
         steps.appendChild(toAdd);
@@ -379,7 +387,11 @@
             if (!cog.blocked) {
               const div = createElem("div");
               div.style.height = "100%";
-              div.style.backgroundImage = `url("${cogIconMap[cog.icon]}")`;
+			  if (cog.icon === "Blank") {
+			    div.style.backgroundImage = `url("${cogBlank}")`;
+			  } else {
+                div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
+			  }
               div.style.backgroundPosition = "center";
               div.style.color = "white";
 
@@ -504,7 +516,16 @@
         document.getElementById("flaggyShop").value = JSON.parse(save["GemItemsPurchased"])[118];
         // Fetch the list of available cogs
         const cogRaw = JSON.parse(save["CogM"]);
-        const cogIcons = JSON.parse(save["CogO"]);
+        const cogIcons = JSON.parse(save["CogO"]).map(c=>{
+          if(c === "Blank") { return c; }
+          if(c.startsWith("Player")) { return c; }
+          if(c === "CogY") { return "Yang_Cog"; }
+          const parsed=c.match(/^Cog([0123YZ])(.{2,3})$/);
+          if(parsed[1] === "Z") {
+			return YIN_MAP[parsed[2]];
+		  }
+          return ICON_TYPE_MAP[parsed[2]] + "_" + ICON_QUALITY_MAP[parsed[1]];
+        });
         const cogArray = Object.entries(cogRaw).map(([key, c]) => {
           return new Cog({
             key: key,
@@ -538,9 +559,12 @@
           g.board.push(slots.splice(0, COLUMNS));
         }
 
-        g.best = null;
+        const initScore = f.getScore(g.board);
         f.printBoard(g.board);
         document.getElementById("steps").innerHTML = "";
+        document.getElementById("buildrate").innerText = initScore.buildRate;
+        document.getElementById("xpbonus").innerText = initScore.expBonus;
+        document.getElementById("flaggyrate").innerText = initScore.flaggy;
       }
 
       function toResultString(num) {
@@ -577,8 +601,9 @@
       });
       
       document.getElementById("solve").onclick = async () => {
+	    const solveTime = getInput("solveTime") || 1000;
 	    document.getElementById("solve").innerText = "Optimizing...";
-		await void 0;
+		await new Promise(r=>setTimeout(r,1));
         const steps = document.getElementById("steps");
         steps.innerHTML = "";
         const printMove = (board, cog1, cog2, pos1, pos2) => {
@@ -633,7 +658,7 @@
         const startTime = Date.now();
         let counter = 0;
         console.log("Trying to optimize");
-        while(Date.now() - startTime < 1000) {
+        while(Date.now() - startTime < solveTime) {
           counter++;
           if (counter % 10000 === 0) {
             f.verifyBoardIntegrity(state.board);
