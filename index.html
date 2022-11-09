@@ -1,6 +1,73 @@
+<!DOCTYPE html>
 <html>
+  <head>
+    <title>IdleOn optimizer</title>
+    <style type="text/css">
+      body {
+        
+      }
+
+      table.cogboard {
+      }
+
+      table.cogboard tr > td {
+        position: relative;
+        display: inline-block;
+        height: 38px;
+        width: 38px;
+        max-width: 38px;
+
+        margin: 0 7px 6px 0;
+        border: 1px solid black;
+        border-bottom-width: 2px;
+
+        background-image: url("cog_bg.png");
+        background-size: contain;
+      }
+
+      .result {
+        display: flex;
+        flex-direction: row;
+        background: url("wooden.png");
+      }
+
+      .info {
+        background: url("wooden_light.png") top;
+        padding: 1em 0 0 1em;
+      }
+
+      #currentBoard {
+        padding: 1em 0 0 1em;
+      }
+
+      .border {
+        background: url("wooden_border.png") top right repeat-y;
+        width: 30px;
+      }
+
+      .stats > .buildrate {
+        color: silver;
+      }
+
+    .stats > .xpbonus {
+      color: gold;
+    }
+
+    .stats > .flaggyrate {
+      color: red;
+    }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          color: #eee;
+          background: #121212;
+        }
+      }
+    </style>
+  </head>
   <body style="display: flex;flex-direction: column;max-height: 98vh;">
     <textarea type="textarea" id="input" rows="10" cols="100"></textarea>
+    <button id="fetch" style="max-width: 15ch;">Fetch</button>
     <button id="load" style="max-width: 15ch;">Load</button>
     <p>
       <label for="flaggyShop">Gem Shop Flaggy upgrades</label>
@@ -23,14 +90,56 @@
       <input type="number" id="solveTime" value="1000" style="width:10ch"></input>
     </p>
     <button id="solve" style="max-width: 15ch;">Solve</button>
-    <div style="display: flex;flex-direction: row;min-height: 0;">
-      <div style="display: flex;flex-direction: column;">
-        <div id="currentBoard"></div>
-        <p id="start"></p>
-        <p id="end"></p>
+    <div class="result">
+      <div class="info">
+        <table class="cogboard">
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </table>
+        <div class="stats">
+          <span class="buildrate">
+            <h3>Total Build Rate</h3>
+            <p id="buildrate"></p>
+          </span>
+          <span class="xpbonus">
+            <h3>Player XP Bonus</h3>
+            <p id="xpbonus"></p>
+          </span>
+          <span class="flaggyrate">
+            <h3>Flaggy Rate</h3>
+            <p id="flaggyrate"></p>
+          </span>
+        </div>
       </div>
+      <div class="border"></div>
+      <div id="currentBoard"></div>
       <div id="steps" style="overflow: auto;min-height: 100px;"></div>
     </div>
+    <p id="start"></p>
+    <p id="end"></p>
     <script type="text/javascript">
       const ROWS = 8;
       const COLUMNS = 12;
@@ -38,12 +147,52 @@
       
       const getInput = (id) => Number.parseInt(document.getElementById(id).value);
       const getFlaggyShop = getInput.bind(null, "flaggyShop");
-      
+
+      const cogBlank = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAmCAYAAACoPemuAAABhWlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TpUWrDnYQcchQO1koKuIoVSyChdJWaNXB5NIvaNKQpLg4Cq4FBz8Wqw4uzro6uAqC4AeIo5OToouU+L+k0CLWg+N+vLv3uHsHCI0KU82eKKBqlpGKx8RsblX0vaIffgwiirDETD2RXsyg6/i6h4evdxGe1f3cn2NAyZsM8IjEc0w3LOIN4plNS+e8TxxkJUkhPieeMOiCxI9cl11+41x0WOCZQSOTmicOEovFDpY7mJUMlXiaOKSoGuULWZcVzluc1UqNte7JXxjIaytprtMcQxxLSCAJETJqKKMCCxFaNVJMpGg/1sU/6viT5JLJVQYjxwKqUCE5fvA/+N2tWZiadJMCMaD3xbY/xgHfLtCs2/b3sW03TwDvM3Cltf3VBjD7SXq9rYWOgKFt4OK6rcl7wOUOMPKkS4bkSF6aQqEAvJ/RN+WA4Vugb83trbWP0wcgQ10t3wAHh0C4SNnrXd7t7+zt3zOt/n4AuHlyw22PBoIAAAAGYktHRAD/AP8A/6C9p5MAAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQfmCwgOMhatl4frAAAAGXRFWHRDb21tZW50AENyZWF0ZWQgd2l0aCBHSU1QV4EOFwAAARNJREFUWMPtmM0KgzAMxzMJgiAivsQeZI+y9xdRURBhO+wwKWmSxh56SI7a/vPLh2nx8X49P1CgIQDA0NVFQY3zARUUag5m6jFNzS12p3cxNwylYQFEDkgjqAkgXKPRRU6AchqKck5i0JrgMXQiZUADG3tO7R3ng9yPlFhqf8XWa7NLZRAlQQkyx6khZowilyCt4Ny+ad3/YFLjD12dpczXgDktnNY9eSbdmXFUVSi96o5wjgEc+yqLOCuzZMyvPQ7GzCxqMqBFqG+bpPWcxbQwVTgU0s5BLRALJsFYgaSgru9Rcta3jTkrqTrXNqlCqFylsmZ4WndYthNw2U4A2LOD+BxzMAdzMAdzMMPfnt+xVJZ9ATWPsYm30CgcAAAAAElFTkSuQmCC";
+      const cogBg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAmCAYAAACoPemuAAABhWlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TpUWrDnYQcchQO1koKuIoVSyChdJWaNXB5NIvaNKQpLg4Cq4FBz8Wqw4uzro6uAqC4AeIo5OToouU+L+k0CLWg+N+vLv3uHsHCI0KU82eKKBqlpGKx8RsblX0vaIffgwiirDETD2RXsyg6/i6h4evdxGe1f3cn2NAyZsM8IjEc0w3LOIN4plNS+e8TxxkJUkhPieeMOiCxI9cl11+41x0WOCZQSOTmicOEovFDpY7mJUMlXiaOKSoGuULWZcVzluc1UqNte7JXxjIaytprtMcQxxLSCAJETJqKKMCCxFaNVJMpGg/1sU/6viT5JLJVQYjxwKqUCE5fvA/+N2tWZiadJMCMaD3xbY/xgHfLtCs2/b3sW03TwDvM3Cltf3VBjD7SXq9rYWOgKFt4OK6rcl7wOUOMPKkS4bkSF6aQqEAvJ/RN+WA4Vugb83trbWP0wcgQ10t3wAHh0C4SNnrXd7t7+zt3zOt/n4AuHlyw22PBoIAAAAGYktHRAD/AP8A/6C9p5MAAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQfmCwgOOyi9NCEJAAAAGXRFWHRDb21tZW50AENyZWF0ZWQgd2l0aCBHSU1QV4EOFwAAAVRJREFUWMPtmDEKwjAUhp/liS09gFcoODg6eYFunsClZ/ASXsFLuHgBvYLg2FXcCmJLBR3EEmOal6TBRsibSpr8/5f3khAyWC9nD3AwEABgszsBAECWJs33r4P1ztIEAnA08E3oQrAcH6XsM1iGLE1eYFSMwqGRWVXW3UppE0akYQKIMiAVQZUJ8H1UdFEmIDLlRWUmbdAqk0fehMqACmxbu2jsKBwKx6NITHd9tfVXza4og0gJUpBddp5MAylyCtIUnBqHqgu/KmsrZWYnLNNC3S1vAkdVRaQXdBG2cQC37UonbhdWMvar8GB/BxZHCHH0fc7jpSi1ha63u1Z/WYi0LkVJXxR5YV6IMtYBIi+KFIwpEDUp9j+qmJlmRVeHXSaBbXNb8IFLUP4c82AezIOZvl3MJ+OmYX889wLCMjQZ2x5y2B7y3rPEcjhbysFqMXXycfgJ3ImUN+Kk6UcAAAAASUVORK5CYII=";
+
+      /* Cog<quality><Type>
+       * Qualities:
+       *   0 Nooby
+       *   1 Decent
+       *   2 Superb
+       *   3 Ultimate
+       * Types:
+       *   A00 Broken
+       *   B0  Double
+       *   B1  Triple
+       * 
+       *   ad  Adjacent
+       *   di  Diagonal
+       *   up  Up
+       */
+      const cogIconMap = { 
+        Blank: cogBlank,
+        Cog0A00: "https://idleon.wiki/wiki/images/e/e3/Cog_Nooby.png",
+        Cog1A00: "https://idleon.wiki/wiki/images/5/5e/Cog_Decent.png",
+        Cog0B0: "https://idleon.wiki/wiki/images/3/31/Double_Nooby.png",
+        Cog0B1: "https://idleon.wiki/wiki/images/d/d4/Trips_Nooby.png",
+        Cog1B1: "https://idleon.wiki/wiki/images/3/3c/Trips_Decent.png",
+        Cog0ad: "https://idleon.wiki/wiki/images/9/90/Adjacent_Nooby.png",
+        Cog0di: "https://idleon.wiki/wiki/images/d/df/Diagonal_Nooby.png",
+        Cog1ad: "https://idleon.wiki/wiki/images/4/4c/Adjacent_Decent.png",
+        Cog1di: "https://idleon.wiki/wiki/images/b/b5/Diagonal_Decent.png",
+        Cog1up: "https://idleon.wiki/wiki/images/6/66/Up_Decent.png"
+      };
+      const createElem = function createElem(tagName, style=undefined) {
+        const elem = document.createElement(tagName);
+        if (style) {
+          elem.style = style;
+        }
+        return elem;
+      }
+
       Cog = function (initialValues = {}) {
         return {
           _key: initialValues.key,
           get key() { return this._key },
           set key(v) { this._position = null; this._key = v },
+          icon: initialValues.icon,
           initialKey: initialValues.initialKey,
           buildRate: initialValues.buildRate,
           isPlayer: initialValues.isPlayer,
@@ -54,7 +203,6 @@
           expRadiusBoost: initialValues.expRadiusBoost,
           flaggyRadiusBoost: initialValues.flaggyRadiusBoost,
           boostRadius: initialValues.boostRadius,
-		  icon: initialValues.icon,
           fixed: initialValues.fixed,
           blocked: initialValues.blocked,
           _position: null,
@@ -82,7 +230,6 @@
         board: [],
         best: null
       };
-
       window.f = {};
       
       f.verifyBoardIntegrity = (board) => {
@@ -195,7 +342,7 @@
         return res;
       }
 	  
-	  f.printMove = (board, cog1, cog2, pos1, pos2) => {
+	    f.printMove = (board, cog1, cog2, pos1, pos2) => {
         const toAdd = document.createElement("p");
         toAdd.innerText = `Switch ${pos1.location}[${pos1.x + 1}|${pos1.y + 1}] (${cog1.buildRate || 0}:${cog1.expBonus || 0}:${cog1.flaggy || 0}) with ${pos2.location}[${pos2.x + 1}|${pos2.y + 1}] (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0})`;
         toAdd.onclick = () => f.printBoard(board, pos1, pos2);
@@ -203,36 +350,56 @@
       }
       
       f.printBoard = (board, cord1={},cord2={}) => {
-        const boardHtml = document.getElementById("currentBoard");
-        const tableBuilder = [];
-        tableBuilder.push("<table>");
+        const table = createElem("table");
+        table.className = "cogboard";
+
         for (let i = 0; i < board.length; i++) {
-          tableBuilder.push("<tr style=\"height: 30px;min-height: 30px;max-height: 30px;\">");
+          const row = createElem("tr");
+          
           for (let j = 0; j < board[i].length; j++) {
+            const col = createElem("td");
+            
             const cog = board[i][j];
             let border = "black";
             if (cog.blocked) {
-              border = "red";
+              // border = "red";
             } else if (cog.fixed) {
               border = "yellow";
             } else if ((cord1.location === "board" && i === cord1.y && j === cord1.x) || (cord2.location === "board" && i === cord2.y && j === cord2.x)) {
               border = "lightgreen";
             }
-            tableBuilder.push(`<td style="position: relative;height: 40px;width: 40px;max-width: 40px;border: solid ${border} 2px;">`);
+
+            // TODO: Move to css
+            col.style.border = `1px solid ${border}`;
+            col.style.borderBottom = `2px solid ${border}`;
+            col.style.backgroundImage = `url("${(!cog.blocked && cogBg) || cogBlank}")`;
+            col.style.backgroundPosition = "center";
+            col.style.backgroundSize = "cover";
+
             if (!cog.blocked) {
-              tableBuilder.push(`<span style="position: absolute;top:0;left:0;">${cog.buildRate || 0}`);
-              tableBuilder.push("</span>");
-              tableBuilder.push(`<span style="position: absolute;top:0;right:0;">${cog.expBonus || 0}`);
-              tableBuilder.push("</span>");
-              tableBuilder.push(`<span style="position: absolute;bottom:0;left:0;">${cog.flaggy || 0}`);
-              tableBuilder.push("</span>");
+              const div = createElem("div");
+              div.style.height = "100%";
+              div.style.backgroundImage = `url("${cogIconMap[cog.icon]}")`;
+              div.style.backgroundPosition = "center";
+              div.style.color = "white";
+
+              div.innerHTML += `<span style="position: absolute;top:0;left:0;">${cog.buildRate || 0}</span>`;
+              div.innerHTML += `<span style="position: absolute;top:0;right:0;">${cog.expBonus || 0}</span>`;
+              div.innerHTML += `<span style="position: absolute;bottom:0;left:0;">${cog.flaggy || 0}</span>`;
+              div.innerHTML += `<span style="position: absolute;bottom:0;right:0;font-size:6px">${cog.icon}</span>`;
+
+              col.appendChild(div);
             }
-            tableBuilder.push("</td>");
+
+            row.appendChild(col);
           }
-          tableBuilder.push("</tr>");
+          
+          table.appendChild(row);
         }
-        tableBuilder.push("</table>");
-        boardHtml.innerHTML = tableBuilder.join("");
+        const boardElem = document.getElementById("currentBoard");
+        boardElem.innerHTML = "";
+        boardElem.appendChild(table);
+
         console.log("Board updated");
       }
       
@@ -253,7 +420,7 @@
         return { cogs: c, board: b };
       }
 	  
-	  f.removeUselesMoves = (board, cogs) => {
+	    f.removeUselesMoves = (board, cogs) => {
 	    const goal = f.getScore(board);
         const cogsToMove = Object.values(cogs)
           .filter((c) => c.key !== c.initialKey);
@@ -291,7 +458,7 @@
         }
 	  }
 	  
-	  f.printOptimalSteps = (board, cogs) => {
+	    f.printOptimalSteps = (board, cogs) => {
         document.getElementById("steps").innerHTML = "";
         const cogsToMove = Object.values(cogs).map(c=>{return {...c}})
           .filter((c) => c.key !== c.initialKey);
@@ -330,10 +497,9 @@
           delete interimCogs[cog.key];
         }
       }
-      
-      document.getElementById("load").onclick = () => {
+
+      function load(save) {
         console.log("Loading");
-        const save = JSON.parse(document.getElementById("input").value);
         // Fetch Gem-Shop flaggy upgrades
         document.getElementById("flaggyShop").value = JSON.parse(save["GemItemsPurchased"])[118];
         // Fetch the list of available cogs
@@ -343,6 +509,7 @@
           return new Cog({
             key: key,
             initialKey: key,
+            icon: cogIcons[key] || "Blank",
             buildRate: c.a,
             isPlayer: c.b > 0,
             expGain: c.b,
@@ -352,7 +519,6 @@
             expRadiusBoost: c.f,
             flaggyRadiusBoost: c.g,
             boostRadius: c.h,
-			icon: cogIcons[key],
             fixed: false,
             blocked: false
           });
@@ -375,7 +541,40 @@
         g.best = null;
         f.printBoard(g.board);
         document.getElementById("steps").innerHTML = "";
-      };
+      }
+
+      function toResultString(num) {
+        if (num >= 0) {
+          return `+${num}`;
+        } else {
+          return num.toString();
+        }
+      }
+      
+      document.getElementById("fetch").addEventListener("click", (ev) => {
+        const input = document.getElementById("input");
+        const name = input.value;
+        console.log("Trying to fetch", name);
+        if (name.length > 0) {
+          const headers = {
+            "Content-Type": "text/json",
+            method: "GET"
+          };
+          fetch(`https://cdn.idleonefficiency.com/profiles/${name.toLowerCase()}.json`, headers)
+          .then((response) => {
+            return response.json();
+          }).then((json) => {
+            load(json);
+          }).catch((reason) => {
+            console.log(reason);
+          })
+        }
+      });
+
+      document.getElementById("load").addEventListener("click", () => {
+        const save = JSON.parse(document.getElementById("input").value);
+        load(save);
+      });
       
       document.getElementById("solve").onclick = async () => {
 	    document.getElementById("solve").innerText = "Optimizing...";
@@ -422,6 +621,12 @@
         let state = f.cloneState(g.cogs, g.board);
         state.score = f.getScore(state.board);
         state.scoreSum = f.getScoreSum(state.score);
+
+        const initBuildRate = state.score.buildRate;
+        const initExpBonus = state.score.expBonus;
+        const initFlaggy = state.score.flaggy;
+        const initScore = state.scoreSum;
+
         document.getElementById("start").innerText = `Starting BuildRate: ${state.score.buildRate}, EXP: ${state.score.expBonus}, Flaggy: ${state.score.flaggy}, Sum: ${state.scoreSum}`;
         const solutions = [state];
         const allKeys = Object.keys(g.cogs);
@@ -480,18 +685,23 @@
         if (best.scoreSum !== f.getScoreSum(f.getScore(best.board))) {
           debugger;
         }
-		for (let i = 1; i <= 5; i++) {
-		  console.log("Removing usless moves", i);
-		  f.removeUselesMoves(best.board, best.cogs);
-		}
+        for (let i = 1; i <= 5; i++) {
+          console.log("Removing usless moves", i);
+          f.removeUselesMoves(best.board, best.cogs);
+        }
         f.verifyBoardIntegrity(best.board);
         if (best.scoreSum !== f.getScoreSum(f.getScore(best.board))) {
           debugger;
         }
         document.getElementById("end").innerText = `Final BuildRate: ${best.score.buildRate}, EXP: ${best.score.expBonus}, Flaggy: ${best.score.flaggy}, Sum: ${best.scoreSum}`;
+        
+        document.getElementById("buildrate").innerText = `${toResultString(best.score.buildRate - initBuildRate)}/HR`;
+        document.getElementById("xpbonus").innerText = `${toResultString(best.score.expBonus - initExpBonus)}%`;
+        document.getElementById("flaggyrate").innerText = `${toResultString(best.score.flaggy - initFlaggy)}/HR`;
+        
         f.printOptimalSteps(best.board, best.cogs);
         f.printBoard(best.board);
-	    document.getElementById("solve").innerText = "Solve";
+	      document.getElementById("solve").innerText = "Solve";
       };
     </script>
   </body>
