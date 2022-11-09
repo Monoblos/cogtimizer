@@ -1,3 +1,14 @@
+class PageEvent extends Event {
+    page;
+    dir;
+
+    constructor(type, page, dir) {
+        super(type);
+        this.page = page;
+        this.dir = dir;
+    }
+}
+
 class Paginator extends EventTarget {
     pageCount = 1;
     pageIndex = 0;
@@ -45,7 +56,7 @@ class Paginator extends EventTarget {
 
     prev() {
         if (this.pageIndex > 0) {
-            const event = new CustomEvent("change", {page: this.pageIndex - 1});
+            const event = new PageEvent("change", this.pageIndex - 1, "prev");
             if (this.dispatchEvent(event)) {
                 this.pageIndex--;
                 this._updatePage();
@@ -55,7 +66,7 @@ class Paginator extends EventTarget {
 
     next() {
         if (this.pageIndex < this.pageCount - 1) {
-            const event = new CustomEvent("change", {page: this.pageIndex + 1});
+            const event = new PageEvent("change", this.pageIndex + 1, "next");
             if (this.dispatchEvent(event)) {
                 this.pageIndex++;
                 this._updatePage();
