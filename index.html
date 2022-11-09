@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
     <title>IdleOn optimizer</title>
-    <style type="text/css">
-      body {
-        
-      }
 
-      table.cogboard {
+
+    <style type="text/css">
+      @font-face {
+        font-family: 'PressStart';
+        src: 
+            url('press-start.k.ttf') format('truetype');
       }
 
       table.cogboard tr > td {
@@ -45,17 +49,36 @@
         width: 30px;
       }
 
-      .stats > .buildrate {
-        color: silver;
+      .stats {
+        font-family: 'PressStart';
+        font-size: .6em;
+        letter-spacing: -1.5px;
       }
 
-    .stats > .xpbonus {
-      color: gold;
-    }
+      .stats > span * {
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
 
-    .stats > .flaggyrate {
-      color: red;
-    }
+      .stats > span > p {
+        font-size: 1.2em;
+      }
+
+      .stats > .buildrate * {
+        color: #f4fcff;
+        background-image: -webkit-linear-gradient(top, #f4fcff 0%, #f4fcff 51%, #c0d9e3 51%);
+      }
+
+      .stats > .xpbonus * {
+        color: #f6cfa7;
+        background-image: -webkit-linear-gradient(top, #f6cfa7 0%, #f6cfa7 51%, #d6a17b 51%);
+      }
+
+      .stats > .flaggyrate * {
+        color: #ffa18d;
+        background-image: -webkit-linear-gradient(top, #ffa18d 0%, #ffa18d 51%, #ff7567 51%);
+      }
 
       @media (prefers-color-scheme: dark) {
         body {
@@ -122,15 +145,15 @@
         <div class="stats">
           <span class="buildrate">
             <h3>Total Build Rate</h3>
-            <p id="buildrate"></p>
+            <p id="buildrate">N/A</p>
           </span>
           <span class="xpbonus">
             <h3>Player XP Bonus</h3>
-            <p id="xpbonus"></p>
+            <p id="xpbonus">N/A</p>
           </span>
           <span class="flaggyrate">
             <h3>Flaggy Rate</h3>
-            <p id="flaggyrate"></p>
+            <p id="flaggyrate">N/A</p>
           </span>
         </div>
       </div>
@@ -144,14 +167,14 @@
       const ROWS = 8;
       const COLUMNS = 12;
       const OPTIMIZABLE = ["buildRate", "expBonus", "flaggy"];
-	  const ICON_QUALITY_MAP = {
-        ["0"]: "Nooby",
-        ["1"]: "Decent",
-        ["2"]: "Superb",
-        ["3"]: "Ultimate",
-        ["Y"]: "Yang",
-        ["Z"]: "Yin"
-	  };
+      const ICON_QUALITY_MAP = {
+          ["0"]: "Nooby",
+          ["1"]: "Decent",
+          ["2"]: "Superb",
+          ["3"]: "Ultimate",
+          ["Y"]: "Yang",
+          ["Z"]: "Yin"
+      };
       const ICON_TYPE_MAP = {
         ["A00"]: "Cog",
         ["A0"]: "CogB",
@@ -510,6 +533,20 @@
         }
       }
 
+      function mmoifyNumber(num, addSign = true) {
+        let str = num;
+
+        if (Math.abs(num) >= 1000) {
+          str = (num / 1000) + "K";
+        }
+
+        if (addSign && num >= 0) {
+          str = "+" + str;
+        }
+
+        return str.toString();
+      }
+
       function load(save) {
         console.log("Loading");
         // Fetch Gem-Shop flaggy upgrades
@@ -562,17 +599,9 @@
         const initScore = f.getScore(g.board);
         f.printBoard(g.board);
         document.getElementById("steps").innerHTML = "";
-        document.getElementById("buildrate").innerText = initScore.buildRate;
-        document.getElementById("xpbonus").innerText = initScore.expBonus;
-        document.getElementById("flaggyrate").innerText = initScore.flaggy;
-      }
-
-      function toResultString(num) {
-        if (num >= 0) {
-          return `+${num}`;
-        } else {
-          return num.toString();
-        }
+        document.getElementById("buildrate").innerText = mmoifyNumber(initScore.buildRate, false) + "/HR";
+        document.getElementById("xpbonus").innerText = mmoifyNumber(initScore.expBonus, false) + "%";
+        document.getElementById("flaggyrate").innerText = mmoifyNumber(initScore.flaggy, false) + "/HR";
       }
       
       document.getElementById("fetch").addEventListener("click", (ev) => {
@@ -720,9 +749,9 @@
         }
         document.getElementById("end").innerText = `Final BuildRate: ${best.score.buildRate}, EXP: ${best.score.expBonus}, Flaggy: ${best.score.flaggy}, Sum: ${best.scoreSum}`;
         
-        document.getElementById("buildrate").innerText = `${toResultString(best.score.buildRate - initBuildRate)}/HR`;
-        document.getElementById("xpbonus").innerText = `${toResultString(best.score.expBonus - initExpBonus)}%`;
-        document.getElementById("flaggyrate").innerText = `${toResultString(best.score.flaggy - initFlaggy)}/HR`;
+        document.getElementById("buildrate").innerText = `${mmoifyNumber(best.score.buildRate - initBuildRate)}/HR`;
+        document.getElementById("xpbonus").innerText = `${mmoifyNumber(best.score.expBonus - initExpBonus)}%`;
+        document.getElementById("flaggyrate").innerText = `${mmoifyNumber(best.score.flaggy - initFlaggy)}/HR`;
         
         f.printOptimalSteps(best.board, best.cogs);
         f.printBoard(best.board);
