@@ -8,6 +8,37 @@ body {
     max-height: 100vh;
 }
 
+.paginator {
+    display: flex;
+    flex-direction: row;
+}
+
+.paginator > div:nth-child(1),
+.paginator > div:nth-child(3) {
+    background: 10;
+    height: 18px;
+    width: 19px;
+    background-image: url("arrows.png");
+    background-repeat: no-repeat;
+    background-position: 0px center;
+}
+.paginator > div:nth-child(1){
+    transform: rotate(180deg);
+}
+.paginator > div:nth-child(1).hasMore,
+.paginator > div:nth-child(3).hasMore {
+    background-position: -19px center;
+    cursor: pointer;
+}
+
+.paginator > div:nth-child(2) {
+    flex-grow: 1;
+    text-align: center;
+    font-family: 'PressStart';
+    font-size: .7em;
+    vertical-align: middle;
+}
+
 .inputarea {
     display: flex;
     flex-direction: column;
@@ -49,12 +80,17 @@ ul.menu > li {
     border-bottom: none;
     border-radius: 15px 15px 0 0;
     
-    background-color: #7d563d;
+    background-color: rgba(66, 38, 10, 0.5);
+    
     color: #f4fcff;
 }
+ul.menu > li:hover {
+    cursor: pointer;
+    background-color: #7d563d;
+}
 
-ul.menu > li.inactive {
-    background-color: rgba(66, 38, 10, 0.5);
+ul.menu > li.active {
+    background-color: #7d563d;
 }
 
 ul.menu > li#settingsbtn {
