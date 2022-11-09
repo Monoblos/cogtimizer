@@ -1,0 +1,179 @@
+@font-face {
+    font-family: 'PressStart';
+    src:
+        url('press-start.k.ttf') format('truetype');
+}
+
+body {
+    max-height: 100vh;
+}
+
+.inputarea {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 2em;
+}
+
+#fetch,
+#load,
+#solve {
+    padding: 3px 5px;
+    border: 1px solid #c0d9e3;
+    border-radius: 5px;
+}
+
+#solve {
+    background-color: green;
+}
+
+ul.menu {
+    display: flex;
+    flex-direction: row;
+    margin: 0;
+    font-family: 'PressStart';
+    font-size: .6em;
+}
+
+ul.menu > li {
+    /* display: inline-block; */
+    list-style-type: none;
+    padding: 30px 15px 3px;
+    margin-right: 10px;
+
+    text-shadow: 1px 1px 0px black,
+                 1px -1px 0px black,
+                 -1px -1px 0px black,
+                 -1px 1px 0px black;
+
+    border: 4px solid #b47848;
+    border-bottom: none;
+    border-radius: 15px 15px 0 0;
+    
+    background-color: #7d563d;
+}
+
+ul.menu > li.inactive {
+    background-color: rgba(66, 38, 10, 0.5);
+}
+
+ul.menu > li#settingsbtn {
+    background-image: url("pulse_mage.png");
+    background-repeat: no-repeat;
+    background-position: top;
+    background-size: 40%;
+}
+
+ul.menu > li#cogbtn {
+    background-image: url("cogboard_tab_bg.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 70%;
+}
+
+.content {
+    border: 4px solid #b47848;
+    display: flex;
+    flex-direction: column;
+    background: url("wooden.png");
+}
+
+.content > div {
+    display: flex;
+}
+
+#settings {
+    margin: 0;
+    padding: 0;
+    flex-direction: column;
+}
+
+#result {
+    display: none;
+    flex-direction: row;
+}
+
+#steps {
+    overflow: auto;
+    min-height: 100px;
+    padding-left: .5em;
+    max-height: 426px;
+}
+
+table.cogboard tr>td {
+    position: relative;
+    display: inline-block;
+    height: 38px;
+    width: 38px;
+    max-width: 38px;
+
+    margin: 0 7px 6px 0;
+    border: 1px solid black;
+    border-bottom-width: 2px;
+
+    background-image: url("cog_bg.png");
+    background-size: contain;
+}
+
+.toMove:after {
+    position: absolute;
+    content: '';
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(27, 255, 0, 1);
+    opacity: 0.2;
+}
+
+.info {
+    background: url("wooden_light.png") top;
+    padding: 1em 0 0 1em;
+}
+
+#currentBoard {
+    padding: 1em 0 0 1em;
+    border-right: 4px solid #b47848;
+}
+
+.border {
+    background: url("wooden_border.png") top right repeat-y;
+    width: 30px;
+}
+
+.stats {
+    font-family: 'PressStart';
+    font-size: .6em;
+    letter-spacing: -1.5px;
+}
+
+.stats>span * {
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.stats>span>p {
+    font-size: 1.2em;
+}
+
+.stats>.buildrate * {
+    color: #f4fcff;
+    background-image: -webkit-linear-gradient(top, #f4fcff 0%, #f4fcff 51%, #c0d9e3 51%);
+}
+
+.stats>.xpbonus * {
+    color: #f6cfa7;
+    background-image: -webkit-linear-gradient(top, #f6cfa7 0%, #f6cfa7 51%, #d6a17b 51%);
+}
+
+.stats>.flaggyrate * {
+    color: #ffa18d;
+    background-image: -webkit-linear-gradient(top, #ffa18d 0%, #ffa18d 51%, #ff7567 51%);
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        color: #eee;
+        background: #121212;
+    }
+}

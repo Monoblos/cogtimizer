@@ -3,174 +3,96 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+
+    <link rel="stylesheet" href="style.css" />
     
     <title>IdleOn optimizer</title>
-
-
-    <style type="text/css">
-      @font-face {
-        font-family: 'PressStart';
-        src: 
-            url('press-start.k.ttf') format('truetype');
-      }
-
-      table.cogboard tr > td {
-        position: relative;
-        display: inline-block;
-        height: 38px;
-        width: 38px;
-        max-width: 38px;
-
-        margin: 0 7px 6px 0;
-        border: 1px solid black;
-        border-bottom-width: 2px;
-
-        background-image: url("cog_bg.png");
-        background-size: contain;
-      }
-	  
-	  .toMove:after {
-        position: absolute;
-        content: '';
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(27, 255, 0, 1);
-        opacity: 0.2;
-      }
-
-      .result {
-        display: flex;
-        flex-direction: row;
-        background: url("wooden.png");
-      }
-
-      .info {
-        background: url("wooden_light.png") top;
-        padding: 1em 0 0 1em;
-      }
-
-      #currentBoard {
-        padding: 1em 0 0 1em;
-      }
-
-      .border {
-        background: url("wooden_border.png") top right repeat-y;
-        width: 30px;
-      }
-
-      .stats {
-        font-family: 'PressStart';
-        font-size: .6em;
-        letter-spacing: -1.5px;
-      }
-
-      .stats > span * {
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-
-      .stats > span > p {
-        font-size: 1.2em;
-      }
-
-      .stats > .buildrate * {
-        color: #f4fcff;
-        background-image: -webkit-linear-gradient(top, #f4fcff 0%, #f4fcff 51%, #c0d9e3 51%);
-      }
-
-      .stats > .xpbonus * {
-        color: #f6cfa7;
-        background-image: -webkit-linear-gradient(top, #f6cfa7 0%, #f6cfa7 51%, #d6a17b 51%);
-      }
-
-      .stats > .flaggyrate * {
-        color: #ffa18d;
-        background-image: -webkit-linear-gradient(top, #ffa18d 0%, #ffa18d 51%, #ff7567 51%);
-      }
-
-      @media (prefers-color-scheme: dark) {
-        body {
-          color: #eee;
-          background: #121212;
-        }
-      }
-    </style>
   </head>
-  <body style="display: flex;flex-direction: column;max-height: 98vh;">
-    <textarea type="textarea" id="input" rows="10" cols="100"></textarea>
-    <button id="fetch" style="max-width: 15ch;">Fetch</button>
-    <button id="load" style="max-width: 15ch;">Load</button>
-    <p>
-      <label for="flaggyShop">Gem Shop Flaggy upgrades</label>
-      <input type="number" id="flaggyShop" value="0" style="width:6ch" disabled=true></input>
-    </p>
-    <p>
-      <label for="buildRate">Build rate score weight</label>
-      <input type="number" id="buildRate" value="2" style="width:6ch"></input>
-    </p>
-    <p>
-      <label for="expBonus">EXP Bonus score weight</label>
-      <input type="number" id="expBonus" value="50" style="width:6ch"></input>
-    </p>
-    <p>
-      <label for="flaggy">Flaggy rate score weight</label>
-      <input type="number" id="flaggy" value="5" style="width:6ch"></input>
-    </p>
-    <p>
-      <label for="solveTime">Solve times (ms)</label>
-      <input type="number" id="solveTime" value="1000" style="width:10ch"></input>
-    </p>
-    <button id="solve" style="max-width: 15ch;">Solve</button>
-    <div class="result">
-      <div class="info">
-        <table class="cogboard">
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-        </table>
-        <div class="stats">
-          <span class="buildrate">
-            <h3>Total Build Rate</h3>
-            <p id="buildrate">N/A</p>
-          </span>
-          <span class="xpbonus">
-            <h3>Player XP Bonus</h3>
-            <p id="xpbonus">N/A</p>
-          </span>
-          <span class="flaggyrate">
-            <h3>Flaggy Rate</h3>
-            <p id="flaggyrate">N/A</p>
-          </span>
-        </div>
+  <body>
+    <div class="inputarea">
+      <textarea type="textarea" id="input" rows="10" cols="100"></textarea>
+      <div>
+        <button id="fetch" style="max-width: 15ch;">Fetch</button>
+        <button id="load" style="max-width: 15ch;">Load</button>
+        <button id="solve" style="max-width: 15ch;">Solve</button>
       </div>
-      <div class="border"></div>
-      <div id="currentBoard"></div>
-      <div id="steps" style="overflow: auto;min-height: 100px;max-height: 410px;"></div>
+    </div>
+    <ul class="menu">
+      <li id="settingsbtn">Settings</li>
+      <li id="cogbtn" class="inactive">Cogs</li>
+    </ul>
+    <div class="content">
+      <div id="settings">
+        <p>
+          <label for="flaggyShop">Gem Shop Flaggy upgrades</label>
+          <input type="number" id="flaggyShop" value="0" style="width:6ch" disabled=true></input>
+        </p>
+        <p>
+          <label for="buildRate">Build rate score weight</label>
+          <input type="number" id="buildRate" value="2" style="width:6ch"></input>
+        </p>
+        <p>
+          <label for="expBonus">EXP Bonus score weight</label>
+          <input type="number" id="expBonus" value="50" style="width:6ch"></input>
+        </p>
+        <p>
+          <label for="flaggy">Flaggy rate score weight</label>
+          <input type="number" id="flaggy" value="5" style="width:6ch"></input>
+        </p>
+        <p>
+          <label for="solveTime">Solve times (ms)</label>
+          <input type="number" id="solveTime" value="1000" style="width:10ch"></input>
+        </p>
+      </div>
+      <div id="result">
+        <div class="info">
+          <table class="cogboard">
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </table>
+          <div class="stats">
+            <span class="buildrate">
+              <h3>Total Build Rate</h3>
+              <p id="buildrate">N/A</p>
+            </span>
+            <span class="xpbonus">
+              <h3>Player XP Bonus</h3>
+              <p id="xpbonus">N/A</p>
+            </span>
+            <span class="flaggyrate">
+              <h3>Flaggy Rate</h3>
+              <p id="flaggyrate">N/A</p>
+            </span>
+          </div>
+        </div>
+        <div class="border"></div>
+        <div id="currentBoard"></div>
+        <div id="steps"></div>
+      </div>
     </div>
     <p id="start"></p>
     <p id="end"></p>
@@ -386,7 +308,7 @@
         return res;
       }
 	  
-	  f.printMove = (board, cog1, cog2, pos1, pos2) => {
+	    f.printMove = (board, cog1, cog2, pos1, pos2) => {
         const toAdd = createElem("p", "color: white");
         toAdd.innerText = `Switch ${pos1.location}[${pos1.x + 1}|${pos1.y + 1}] (${cog1.buildRate || 0}:${cog1.expBonus || 0}:${cog1.flaggy || 0}) with ${pos2.location}[${pos2.x + 1}|${pos2.y + 1}] (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0})`;
         toAdd.onclick = () => f.printBoard(board, pos1, pos2);
@@ -556,8 +478,10 @@
       function mmoifyNumber(num, addSign = true) {
         let str = num;
 
-        if (Math.abs(num) >= 1000) {
-          str = (num / 1000) + "K";
+        if (Math.abs(num) >= 1000000) {
+          str = (num / 1000000).toFixed(2) + "M";
+        } else if (Math.abs(num) >= 1000) {
+          str = (num / 1000).toFixed(2) + "K";
         }
 
         if (addSign && num >= 0) {
@@ -578,9 +502,10 @@
           if(c.startsWith("Player")) { return c; }
           if(c === "CogY") { return "Yang_Cog"; }
           const parsed=c.match(/^Cog([0123YZ])(.{2,3})$/);
+          openCogTab();
           if(parsed[1] === "Z") {
-			return YIN_MAP[parsed[2]];
-		  }
+            return YIN_MAP[parsed[2]];
+          }
           return ICON_TYPE_MAP[parsed[2]] + "_" + ICON_QUALITY_MAP[parsed[1]];
         });
         const cogArray = Object.entries(cogRaw).map(([key, c]) => {
@@ -652,9 +577,9 @@
       });
       
       document.getElementById("solve").onclick = async () => {
-	    const solveTime = getInput("solveTime") || 1000;
-	    document.getElementById("solve").innerText = "Optimizing...";
-		await new Promise(r=>setTimeout(r,1));
+        const solveTime = getInput("solveTime") || 1000;
+        document.getElementById("solve").innerText = "Optimizing...";
+        await new Promise(r=>setTimeout(r,1));
         const steps = document.getElementById("steps");
         steps.innerHTML = "";
         const printMove = (board, cog1, cog2, pos1, pos2) => {
@@ -663,7 +588,7 @@
           toAdd.onclick = () => f.printBoard(board, pos1, pos2);
           steps.appendChild(toAdd);
         }
-        
+          
         const shuffledStart = () => {
           const state = f.cloneState(g.cogs, g.board);
           state.score = f.getScore(state.board);
@@ -777,8 +702,32 @@
         
         f.printOptimalSteps(best.board, best.cogs);
         f.printBoard(best.board);
+        openCogTab();
 	      document.getElementById("solve").innerText = "Solve";
       };
+    
+      function openCogTab() {
+        document.getElementById("settings").style.display = "none";
+        document.getElementById("result").style.display = "inherit";
+
+        document.getElementById("settingsbtn").className = "inactive";
+        document.getElementById("cogbtn").className = "";
+      }
+
+      function openSettingsTab() {
+        document.getElementById("settings").style.display = "inherit";
+        document.getElementById("result").style.display = "none";
+
+        document.getElementById("settingsbtn").className = "";
+        document.getElementById("cogbtn").className = "inactive";
+      }
+
+      document.getElementById("settingsbtn").addEventListener("click", () => {
+        openSettingsTab();
+      });
+      document.getElementById("cogbtn").addEventListener("click", () => {
+        openCogTab();
+      });
     </script>
   </body>
 </html>
