@@ -47,33 +47,7 @@
       </div>
       <div id="result">
         <div class="info">
-          <table class="cogboard">
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-          </table>
+          <div id="spare"></div>
           <div class="stats">
             <span class="buildrate">
               <h3>Total Build Rate</h3>
@@ -113,13 +87,13 @@
         ["A0"]: "CogB",
         ["A1"]: "Average",
         ["A2"]: "Spur",
-        ["A2"]: "Stacked",
-        ["A2"]: "Deckered",
+        ["A3"]: "Stacked",
+        ["A4"]: "Deckered",
         ["B0"]: "Double",
         ["B1"]: "Trips",
         ["B2"]: "Trabble",
         ["B3"]: "Quad",
-        ["B3"]: "Penta",
+        ["B4"]: "Penta",
         ["ad"]: "Adjacent",
         ["di"]: "Diagonal",
         ["up"]: "Up",
@@ -151,6 +125,152 @@
         return elem;
       }
 
+      class BoardRenderer {
+        _rows;
+        _columns;
+        _type;
+        
+        moveFrom = undefined;
+        moveTo = undefined;
+
+        constructor(rows, columns, type) {
+          this._rows = rows;
+          this._columns = columns;
+          this._type = type;
+
+          this.board = new Array(columns * rows);
+          for (let i = 0; i < this.board.length; i++) {
+            this.board[i] = {
+              item: undefined,
+              elem: undefined,
+              row: Math.floor(i / columns),
+              column: i % columns
+            };
+          };
+        }
+
+        createHTMLElement() {
+          const tableElem = document.createElement("table");
+          tableElem.className = "cogboard";
+
+          for (let row = 0; row < this._rows; row++) {
+            const rowElem = document.createElement("tr");
+            for (let col = 0; col < this._columns; col++) {
+              const index = row * this._columns + col;
+
+              const colElem = document.createElement("td");
+              this.board[index].elem = colElem;
+              rowElem.appendChild(colElem);
+
+            }
+            tableElem.appendChild(rowElem);
+          }
+
+          return tableElem;
+        }
+
+        _getIndex(row, column) {
+          if (row > this._rows) {
+            throw new Error("Tried to access row outside the board");
+          }
+          if (column > this._columns) {
+            throw new Error("Tried to access column outside the board");
+          }
+
+          return (row  * this._columns) + column;
+        }
+
+        _render(slot) {
+          const cog = slot.item;
+          const col = slot.elem;
+
+          let border = "black";
+          let cssClass = "";
+          
+          if (cog.fixed) {
+            // border = "yellow";
+          }
+
+          // TODO: Move to css
+          col.style.border = `1px solid ${border}`;
+          col.style.borderBottom = `2px solid ${border}`;
+          col.style.backgroundImage = `url("${(!cog.blocked && cogBg) || cogBlank}")`;
+          col.style.backgroundPosition = "center";
+          col.style.backgroundSize = "cover";
+          if (col.classList.contains("toMove")) {
+            col.classList.remove("toMove");
+          }
+
+          if (!cog.blocked) {
+            let div;
+            if (col.firstChild) {
+              div = col.firstChild;
+            } else {
+              div = createElem("div");
+              div.style.height = "100%";
+              div.style.backgroundPosition = "center";
+              div.style.color = "white";
+              col.appendChild(div);
+            }
+
+            if (cog.icon === "Blank") {
+              div.style.backgroundImage = `url("${cogBlank}")`;
+            } else if (cog.icon.startsWith("Player_")) {
+              div.innerHTML = `<div style="word-break: break-all;font-size: 8px;line-height: 1.4;padding: 2px;">${cog.icon.substr(7)}` + "</div>";
+            } else {
+              div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
+            }
+          }
+        }
+
+        set(row, column, item) {
+          const index = this._getIndex(row, column);
+          const slot = this.board[index];
+          slot.item = item;
+
+          this._render(slot);
+        }
+
+        move(cordFrom, cordTo) {
+          if (this.moveTo)
+            this._render(this.moveTo);
+
+          if (this.moveFrom)
+            this._render(this.moveFrom);
+
+          if (cordFrom.location == this._type) {
+            const from = this.get(cordFrom.y, cordFrom.x);
+            const fromCol = from.elem;
+
+            this.moveFrom = from;
+
+            fromCol.style.border = `1px solid lightgreen`;
+            fromCol.style.borderBottom = `2px solid lightgreen`;
+            fromCol.classList.add("toMove");
+          } else {
+            this.moveFrom = undefined;
+          }
+
+          if (cordTo.location === this._type) {
+            const to = this.get(cordTo.y, cordTo.x);
+            const toCol = to.elem;
+
+            this.moveTo = to;
+
+            toCol.style.border = `1px solid lightgreen`;
+            toCol.style.borderBottom = `2px solid lightgreen`;
+            toCol.classList.add("toMove");
+          } else {
+            this.moveTo = undefined;
+          }
+        }
+
+        get(row, column) {
+          const index = this._getIndex(row, column);
+          return this.board[index];
+        }
+      }
+
       Cog = function (initialValues = {}) {
         return {
           _key: initialValues.key,
@@ -175,6 +295,9 @@
           position(keyNum) {
             if (this._position && !keyNum) return this._position;
             keyNum = keyNum || Number.parseInt(this.key);
+            // build = 97-107
+            // spare = 108-*
+            // board = 0-96
             const location = keyNum >= 96 ? keyNum <= 107 ? "build" : "spare" : "board";
             let perRow = 3;
             let offset = 108;
@@ -197,6 +320,19 @@
         best: null
       };
       window.f = {};
+
+      window.boardRenderer = new BoardRenderer(ROWS, COLUMNS, "board");
+      window.spareRenderer = new BoardRenderer(5, 3, "spare");
+
+      const boardElem = document.getElementById("currentBoard");
+      boardElem.innerHTML = "";
+      // boardElem.appendChild(table);
+      boardElem.appendChild(window.boardRenderer.createHTMLElement());
+
+      const spareElem = document.getElementById("spare");
+      const spareParent = spareElem.parentNode;
+      spareParent.insertBefore(window.spareRenderer.createHTMLElement(), spareElem);
+      spareParent.removeChild(spareElem);
       
       f.verifyBoardIntegrity = (board) => {
         for (let y = 0; y < board.length; y++) {
@@ -316,71 +452,21 @@
         ${pos2.location} \
         [${pos2.x + 1}|${pos2.y + 1}] \
         (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0}) <span style="background-image:url('icons/${cog2.icon}.png')"></span>`;
-        toAdd.onclick = () => f.printBoard(board, pos1, pos2);
+        toAdd.onclick = () => {
+          window.boardRenderer.move(pos1, pos2);
+          window.spareRenderer.move(pos1, pos2);
+        }
         steps.appendChild(toAdd);
       }
       
       f.printBoard = (board, cord1={},cord2={}) => {
-        const table = createElem("table");
-        table.className = "cogboard";
-
         for (let i = 0; i < board.length; i++) {
           const row = createElem("tr");
           
           for (let j = 0; j < board[i].length; j++) {
-            const col = createElem("td");
-            
-            const cog = board[i][j];
-            let border = "black";
-			      let cssClass = "";
-            if (cog.blocked) {
-              // border = "red";
-            } else if (cog.fixed) {
-              border = "yellow";
-            } else if ((cord1.location === "board" && i === cord1.y && j === cord1.x) || (cord2.location === "board" && i === cord2.y && j === cord2.x)) {
-              border = "lightgreen";
-			        cssClass = "toMove";
-            }
-
-            // TODO: Move to css
-            col.style.border = `1px solid ${border}`;
-            col.style.borderBottom = `2px solid ${border}`;
-            col.style.backgroundImage = `url("${(!cog.blocked && cogBg) || cogBlank}")`;
-            col.style.backgroundPosition = "center";
-            col.style.backgroundSize = "cover";
-            if (cssClass) {
-              col.classList.add(cssClass);
-            }
-
-            if (!cog.blocked) {
-              const div = createElem("div");
-              div.style.height = "100%";
-              if (cog.icon === "Blank") {
-                div.style.backgroundImage = `url("${cogBlank}")`;
-              } else if (cog.icon.startsWith("Player_")) {
-                div.innerHTML = `<div style="word-break: break-all;font-size: 8px;line-height: 1.4;padding: 2px;">${cog.icon.substr(7)}` + "</div>";
-              } else {
-                div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
-              }
-              div.style.backgroundPosition = "center";
-              div.style.color = "white";
-
-              // div.innerHTML += `<span style="position: absolute;top:0;left:0;">${cog.buildRate || 0}</span>`;
-              // div.innerHTML += `<span style="position: absolute;top:0;right:0;">${cog.expBonus || 0}</span>`;
-              // div.innerHTML += `<span style="position: absolute;bottom:0;left:0;">${cog.flaggy || 0}</span>`;
-              // div.innerHTML += `<span style="position: absolute;bottom:0;right:0;font-size:6px">${cog.icon}</span>`;
-
-              col.appendChild(div);
-            }
-
-            row.appendChild(col);
+            window.boardRenderer.set(i, j, board[i][j]);
           }
-          
-          table.appendChild(row);
         }
-        const boardElem = document.getElementById("currentBoard");
-        boardElem.innerHTML = "";
-        boardElem.appendChild(table);
 
         console.log("Board updated");
       }
@@ -502,12 +588,12 @@
         document.getElementById("flaggyShop").value = JSON.parse(save["GemItemsPurchased"])[118];
         // Fetch the list of available cogs
         const cogRaw = JSON.parse(save["CogM"]);
+        let i = 0;
         const cogIcons = JSON.parse(save["CogO"]).map(c=>{
           if(c === "Blank") { return c; }
           if(c.startsWith("Player")) { return c; }
           if(c === "CogY") { return "Yang_Cog"; }
           const parsed=c.match(/^Cog([0123YZ])(.{2,3})$/);
-          openCogTab();
           if(parsed[1] === "Z") {
             return YIN_MAP[parsed[2]];
           }
@@ -543,6 +629,13 @@
           slots[cog.key] = cog;
           g.cogs[cog.key] = cog;
         }
+        slots.splice(107).forEach((v, i) => {
+          console.log(v);
+          const index = i - 1;
+          const row = Math.floor(index / 3);
+          const col = index % 3;
+          window.spareRenderer.set(row, col, v);
+        })
         g.board = [];
         for (let i = 0; i < ROWS; i++) {
           g.board.push(slots.splice(0, COLUMNS));
@@ -550,6 +643,7 @@
 
         const initScore = f.getScore(g.board);
         f.printBoard(g.board);
+        openCogTab();
         document.getElementById("steps").innerHTML = "";
         document.getElementById("buildrate").innerText = mmoifyNumber(initScore.buildRate, false) + "/HR";
         document.getElementById("xpbonus").innerText = mmoifyNumber(initScore.expBonus, false) + "%";
