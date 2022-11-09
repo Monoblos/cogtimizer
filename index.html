@@ -28,6 +28,17 @@
         background-image: url("cog_bg.png");
         background-size: contain;
       }
+	  
+	  .toMove:after {
+        position: absolute;
+        content: '';
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(27, 255, 0, 1);
+        opacity: 0.2;
+      }
 
       .result {
         display: flex;
@@ -392,12 +403,14 @@
             
             const cog = board[i][j];
             let border = "black";
+			let cssClass = "";
             if (cog.blocked) {
               // border = "red";
             } else if (cog.fixed) {
               border = "yellow";
             } else if ((cord1.location === "board" && i === cord1.y && j === cord1.x) || (cord2.location === "board" && i === cord2.y && j === cord2.x)) {
               border = "lightgreen";
+			  cssClass = "toMove";
             }
 
             // TODO: Move to css
@@ -406,22 +419,27 @@
             col.style.backgroundImage = `url("${(!cog.blocked && cogBg) || cogBlank}")`;
             col.style.backgroundPosition = "center";
             col.style.backgroundSize = "cover";
+			if (cssClass) {
+			  col.classList.add(cssClass);
+			}
 
             if (!cog.blocked) {
               const div = createElem("div");
               div.style.height = "100%";
 			  if (cog.icon === "Blank") {
 			    div.style.backgroundImage = `url("${cogBlank}")`;
+			  } else if (cog.icon.startsWith("Player_")) {
+                div.innerHTML = `<span style="position: absolute;top:50%;right:0;font-size:8px">${cog.icon.substr(8)}` + "</span>";
 			  } else {
                 div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
 			  }
               div.style.backgroundPosition = "center";
               div.style.color = "white";
 
-              div.innerHTML += `<span style="position: absolute;top:0;left:0;">${cog.buildRate || 0}</span>`;
-              div.innerHTML += `<span style="position: absolute;top:0;right:0;">${cog.expBonus || 0}</span>`;
-              div.innerHTML += `<span style="position: absolute;bottom:0;left:0;">${cog.flaggy || 0}</span>`;
-              div.innerHTML += `<span style="position: absolute;bottom:0;right:0;font-size:6px">${cog.icon}</span>`;
+              // div.innerHTML += `<span style="position: absolute;top:0;left:0;">${cog.buildRate || 0}</span>`;
+              // div.innerHTML += `<span style="position: absolute;top:0;right:0;">${cog.expBonus || 0}</span>`;
+              // div.innerHTML += `<span style="position: absolute;bottom:0;left:0;">${cog.flaggy || 0}</span>`;
+              // div.innerHTML += `<span style="position: absolute;bottom:0;right:0;font-size:6px">${cog.icon}</span>`;
 
               col.appendChild(div);
             }
@@ -577,7 +595,9 @@
             expRadiusBoost: c.f,
             flaggyRadiusBoost: c.g,
             boostRadius: c.h,
-            fixed: false,
+			flagSpeed: c.j,
+			nothing: c.k,
+            fixed: c.h === "everything",
             blocked: false
           });
         });
@@ -655,7 +675,7 @@
             const cog2Key = allKeys[Math.floor(Math.random() * allKeys.length)];
             const cog2 = state.cogs[cog2Key];
             const pos2 = cog2.position();
-            if (pos1.location === "build" || pos2.location === "build") continue;
+            if (cog1.fixed || cog2.fixed || pos1.location === "build" || pos2.location === "build") continue;
             if (pos1.location === "board") {
               state.board[pos1.y][pos1.x] = cog2;
             }
@@ -700,7 +720,7 @@
           const cog2 = state.cogs[cog2Key];
           const pos2 = cog2.position();
           if (pos1.location !== "board" && pos2.location !== "board") continue;
-          if (pos1.location === "build" || pos2.location === "build") continue;
+          if (cog1.fixed || cog2.fixed || pos1.location === "build" || pos2.location === "build") continue;
           if (pos1.location === "board") {
             state.board[pos1.y][pos1.x] = cog2;
           }
