@@ -50,6 +50,7 @@ ul.menu > li {
     border-radius: 15px 15px 0 0;
     
     background-color: #7d563d;
+    color: #f4fcff;
 }
 
 ul.menu > li.inactive {
@@ -72,6 +73,7 @@ ul.menu > li#cogbtn {
 
 .content {
     border: 4px solid #b47848;
+    color: #f4fcff;
     display: flex;
     flex-direction: column;
     background: url("wooden.png");
