@@ -431,7 +431,7 @@
 			  if (cog.icon === "Blank") {
 			    div.style.backgroundImage = `url("${cogBlank}")`;
 			  } else if (cog.icon.startsWith("Player_")) {
-                div.innerHTML = `<span style="position: absolute;top:50%;right:0;font-size:8px">${cog.icon.substr(8)}` + "</span>";
+                div.innerHTML = `<div style="word-break: break-all;font-size: 8px;line-height: 1.4;padding: 2px;">${cog.icon.substr(8)}` + "</div>";
 			  } else {
                 div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
 			  }
