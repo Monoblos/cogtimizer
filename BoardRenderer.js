@@ -2,15 +2,24 @@
 class BoardRenderer {
   _rows;
   _columns;
+  _visibleRows;
   _type;
+
+  _pageIndex = 0;
+  _pageCount = 0;
+
+  board;
 
   moveFrom = undefined;
   moveTo = undefined;
 
-  constructor(rows, columns, type) {
+  constructor(rows, columns, type, visibleRows = rows) {
     this._rows = rows;
     this._columns = columns;
+    this._visibleRows = visibleRows;
     this._type = type;
+
+    this._pageCount = rows / visibleRows;
 
     this.board = new Array(columns * rows);
     for (let i = 0; i < this.board.length; i++) {
@@ -27,20 +36,34 @@ class BoardRenderer {
     const tableElem = document.createElement("table");
     tableElem.className = "cogboard";
 
-    for (let row = 0; row < this._rows; row++) {
+    for (let row = 0; row < this._visibleRows; row++) {
       const rowElem = document.createElement("tr");
       for (let col = 0; col < this._columns; col++) {
         const index = row * this._columns + col;
 
         const colElem = document.createElement("td");
         this.board[index].elem = colElem;
+        for (let i = 1; i < this._pageCount; i++) {
+          this.board[index + (i * this._visibleRows * this._columns)].elem = colElem;
+        }
         rowElem.appendChild(colElem);
-
       }
       tableElem.appendChild(rowElem);
     }
 
     return tableElem;
+  }
+
+  showPage(pageIndex) {
+    pageIndex = Math.max(0, Math.min(pageIndex, (this._pageCount - 1)));
+    this._pageIndex = pageIndex;
+
+    const pageSize = this._visibleRows * this._columns;
+    const index = pageIndex * pageSize;
+
+    for (let i = index; i < index + pageSize; i++) {
+      this._render(this.board[i]);
+    }
   }
 
   _getIndex(row, column) {
@@ -55,8 +78,24 @@ class BoardRenderer {
   }
 
   _render(slot) {
-    const cog = slot.item;
+    let cog = slot.item;
     const col = slot.elem;
+
+    const isVisible = (slot.row >= this._pageIndex * this._visibleRows && 
+      slot.row < this._pageIndex * this._visibleRows + this._visibleRows);
+
+    console.log(slot.row, slot.column, isVisible);
+    if (!isVisible) {
+      return;
+    }
+
+    if (!cog) {
+      cog = {
+        fixed: false,
+        blocked: false,
+        icon: "Blank"
+      };
+    }
 
     let border = "black";
     let cssClass = "";
@@ -68,7 +107,7 @@ class BoardRenderer {
     // TODO: Move to css
     col.style.border = `1px solid ${border}`;
     col.style.borderBottom = `2px solid ${border}`;
-    col.style.backgroundImage = `url("${(!cog.blocked && cogBg) || cogBlank}")`;
+    col.style.backgroundImage = `url("${(!cog.blocked && "cog_bg.png") || "cog_blank.png"}")`;
     col.style.backgroundPosition = "center";
     col.style.backgroundSize = "cover";
     if (col.classList.contains("toMove")) {
@@ -88,10 +127,12 @@ class BoardRenderer {
       }
 
       if (cog.icon === "Blank") {
-        div.style.backgroundImage = `url("${cogBlank}")`;
+        div.innerHTML = "";
+        div.style.backgroundImage = `url("cog_blank.png")`;
       } else if (cog.icon.startsWith("Player_")) {
         div.innerHTML = `<div style="word-break: break-all;font-size: 8px;line-height: 1.4;padding: 2px;">${cog.icon.substr(7)}` + "</div>";
       } else {
+        div.innerHTML = "";
         div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
       }
     }

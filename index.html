@@ -179,11 +179,13 @@
       };
       window.f = {};
 
-      const sparePage = new Paginator("sparepage", 3, 1);
-      sparePage.addEventListener("change", console.log);
-
       window.boardRenderer = new BoardRenderer(ROWS, COLUMNS, "board");
-      window.spareRenderer = new BoardRenderer(5, 3, "spare");
+      window.spareRenderer = new BoardRenderer(30, 3, "spare", 5);
+
+      const sparePage = new Paginator("sparepage", window.spareRenderer._pageCount, 1);
+      sparePage.addEventListener("change", (ev) => {
+        window.spareRenderer.showPage(ev.page);
+      });
 
       const boardElem = document.getElementById("currentBoard");
       boardElem.innerHTML = "";
@@ -502,12 +504,14 @@
           slots[cog.key] = cog;
           g.cogs[cog.key] = cog;
         }
-        slots.splice(107).forEach((v, i) => {
-          const index = i - 1;
+        window.spareRenderer.showPage(0);
+        sparePage.goto(0);
+        for (let i = 107; i < slots.length; i++) {
+          const index = (i - 107);
           const row = Math.floor(index / 3); // 3 since the spare board has 3 columns per row
           const col = index % 3;
-          window.spareRenderer.set(row, col, v);
-        })
+          window.spareRenderer.set(row, col, slots[i]);
+        };
         g.board = [];
         for (let i = 0; i < ROWS; i++) {
           g.board.push(slots.splice(0, COLUMNS));
