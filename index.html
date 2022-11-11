@@ -54,15 +54,15 @@
           <div class="stats">
             <span class="buildrate">
               <h3>Total Build Rate</h3>
-              <p id="buildrate">N/A</p>
+              <p id="buildrate">Please</p>
             </span>
             <span class="xpbonus">
               <h3>Player XP Bonus</h3>
-              <p id="xpbonus">N/A</p>
+              <p id="xpbonus">load a</p>
             </span>
             <span class="flaggyrate">
               <h3>Flaggy Rate</h3>
-              <p id="flaggyrate">N/A</p>
+              <p id="flaggyrate">Savegame</p>
             </span>
           </div>
         </div>
@@ -108,12 +108,12 @@
         ["co"]: "Column",
         ["cr"]: "Corner",
       };
-	    const YIN_MAP = {
+        const YIN_MAP = {
         ["A00"]: "Yin_Top_Left_Cog",
         ["A01"]: "Yin_Top_Right_Cog",
         ["A02"]: "Yin_Bottom_Left_Cog",
         ["A03"]: "Yin_Bottom_Right_Cog"
-	  };
+      };
       
       const getInput = (id) => Number.parseInt(document.getElementById(id).value);
       const getFlaggyShop = getInput.bind(null, "flaggyShop");
@@ -145,8 +145,8 @@
           expRadiusBoost: initialValues.expRadiusBoost,
           flaggyRadiusBoost: initialValues.flaggyRadiusBoost,
           boostRadius: initialValues.boostRadius,
-		  flagSpeed: initialValues.flagSpeed,
-		  nothing: initialValues.nothing, // Description: Nothing LoL
+          flagSpeed: initialValues.flagSpeed,
+          nothing: initialValues.nothing, // Description: Nothing LoL
           fixed: initialValues.fixed,
           blocked: initialValues.blocked,
           _position: null,
@@ -315,9 +315,10 @@
       }
 
       let moveIndex = 0;
+      //TODO Paddy: Kann so schlecht resettet werden (und wird aktuell nicht genutzt)
       const moves = [];
-	  
-	    f.printMove = (board, cog1, cog2, pos1, pos2) => {
+      
+      f.printMove = (board, cog1, cog2, pos1, pos2) => {
         moves.push({pos1, pos2});
         const toAdd = createElem("p");
         toAdd.innerHTML = `Switch ${pos1.location} \
@@ -330,7 +331,7 @@
           window.boardRenderer.move(pos1, pos2);
           window.spareRenderer.move(pos1, pos2);
         }
-        steps.appendChild(toAdd);
+        document.getElementById("steps").appendChild(toAdd);
       }
       
       f.printBoard = (board, cord1={},cord2={}) => {
@@ -353,6 +354,10 @@
         return arr;
       }
       
+      function yield() {
+        return new Promise(r=>setTimeout(r,1));
+      }
+      
       f.cloneState = (cogs, board) => {
         const c = {};
         for (let [k,v] of Object.entries(cogs)) {
@@ -361,9 +366,9 @@
         const b = board.map((r)=>r.map((c)=>{return new Cog(c)}));
         return { cogs: c, board: b };
       }
-	  
-	    f.removeUselesMoves = (board, cogs) => {
-	    const goal = f.getScore(board);
+      
+        f.removeUselesMoves = (board, cogs) => {
+        const goal = f.getScore(board);
         const cogsToMove = Object.values(cogs)
           .filter((c) => c.key !== c.initialKey);
         // Check if move still changes something
@@ -380,17 +385,17 @@
           if (pos2.location === "board") {
             board[pos2.y][pos2.x] = cog1;
           }
-		  const changed = f.getScore(board);
-		  if (changed.buildRate === goal.buildRate
-		    && changed.flaggy === goal.flaggy
-			&& changed.expBonus === goal.expBonus) {
+          const changed = f.getScore(board);
+          if (changed.buildRate === goal.buildRate
+            && changed.flaggy === goal.flaggy
+            && changed.expBonus === goal.expBonus) {
             console.log(`Removing useless move ${cog1Key} to ${cog2Key}`);
             cog1.key = cog2Key;
             cogs[cog2Key] = cog1;
             cog2.key = cog1Key;
             cogs[cog1Key] = cog2;
-			continue;
-		  }
+            continue;
+          }
           if (pos1.location === "board") {
             board[pos1.y][pos1.x] = cog1;
           }
@@ -398,9 +403,9 @@
             board[pos2.y][pos2.x] = cog2;
           }
         }
-	  }
-	  
-	    f.printOptimalSteps = (board, cogs) => {
+      }
+      
+      f.printOptimalSteps = (board, cogs) => {
         document.getElementById("steps").innerHTML = "";
         const cogsToMove = Object.values(cogs).map(c=>{return {...c}})
           .filter((c) => c.key !== c.initialKey);
@@ -422,8 +427,7 @@
             interimCogs[cog.initialKey] = cog;
             continue;
           }
-          // TODO Monoblos: printMove erwartet 5 Argumente
-          f.printMove(board, cog, targetCog);
+          f.printMove(board, cog, targetCog, cog.position(Number.parseInt(key)), targetCog.position(Number.parseInt(cog.key)));
           delete interimCogs[cog.key];
         }
         // Multi-step movements
@@ -445,9 +449,9 @@
         let str = num;
 
         if (Math.abs(num) >= 1000000) {
-          str = (num / 1000000).toFixed(2) + "M";
+          str = (Math.ceil(num / 10000) / 100) + "M";
         } else if (Math.abs(num) >= 1000) {
-          str = (num / 1000).toFixed(2) + "K";
+          str = (Math.ceil(num / 10) / 100) + "K";
         }
 
         if (addSign && num >= 0) {
@@ -554,19 +558,10 @@
       document.getElementById("solve").onclick = async () => {
         const solveTime = getInput("solveTime") || 1000;
         document.getElementById("solve").innerText = "Optimizing...";
-        await new Promise(r=>setTimeout(r,1));
+        document.getElementById("steps").innerHTML = "";
+        let lastYield = Date.now();
+        await yield(); // Yield for DOM-Refresh
 
-        // TODO Moboblos: Kann die printMove funktion entfernt werden? es gibt ja f.printMove
-        const steps = document.getElementById("steps");
-        steps.innerHTML = "";
-        const printMove = (board, cog1, cog2, pos1, pos2) => {
-          const toAdd = document.createElement("p");
-          toAdd.innerText = `Switch ${pos1.location}[${pos1.x + 1}|${pos1.y + 1}] (${cog1.buildRate || 0}:${cog1.expBonus || 0}:${cog1.flaggy || 0}) with ${pos2.location}[${pos2.x + 1}|${pos2.y + 1}] (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0})`;
-          toAdd.onclick = () => f.printBoard(board, pos1, pos2);
-          steps.appendChild(toAdd);
-        }
-        // END TODO
-          
         const shuffledStart = () => {
           const state = f.cloneState(g.cogs, g.board);
           state.score = f.getScore(state.board);
@@ -613,6 +608,11 @@
         let counter = 0;
         console.log("Trying to optimize");
         while(Date.now() - startTime < solveTime) {
+          if(Date.now() - lastYield > 5000) {
+            // Prevent UI from freezing with very high solve times
+            await yield();
+            lastYield = Date.now();
+          }
           counter++;
           if (counter % 10000 === 0) {
             f.verifyBoardIntegrity(state.board);
@@ -664,10 +664,7 @@
         if (best.scoreSum !== f.getScoreSum(f.getScore(best.board))) {
           debugger;
         }
-        for (let i = 1; i <= 5; i++) {
-          console.log("Removing usless moves", i);
-          f.removeUselesMoves(best.board, best.cogs);
-        }
+        f.removeUselesMoves(best.board, best.cogs);
         f.verifyBoardIntegrity(best.board);
         if (best.scoreSum !== f.getScoreSum(f.getScore(best.board))) {
           debugger;
@@ -681,7 +678,7 @@
         f.printOptimalSteps(best.board, best.cogs);
         // f.printBoard(best.board);
         openCogTab();
-	      document.getElementById("solve").innerText = "Solve";
+        document.getElementById("solve").innerText = "Solve";
       };
     
       function openCogTab() {
