@@ -20,10 +20,13 @@
         <button id="solve" style="max-width: 15ch;">Solve</button>
       </div>
     </div>
-    <ul class="menu">
-      <li id="settingsbtn" class="active">Settings</li>
-      <li id="cogbtn">Cogs</li>
-    </ul>
+    <div class="menucontainer">
+      <ul class="menu">
+        <li id="settingsbtn" class="active">Settings</li>
+        <li id="cogbtn">Cogs</li>
+      </ul>
+      <div class="heart"></div>
+    </div>
     <div class="content">
       <div id="settings">
         <p>
@@ -471,7 +474,7 @@
             for (let i = 0; i < length; i++) {
               const eqName = slots[i];
               if (eqName.indexOf("Hats") !== -1) {
-                hatIcons[v] = "hats/" + eqName + "_x1";
+                hatIcons[v] = eqName + "_x1";
                 hatFound = true;
                 break;
               }
