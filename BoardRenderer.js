@@ -107,7 +107,7 @@ class BoardRenderer {
     // TODO: Move to css
     col.style.border = `1px solid ${border}`;
     col.style.borderBottom = `2px solid ${border}`;
-    col.style.backgroundImage = `url(assets/"${(!cog.blocked && "cog_bg.png") || "cog_blank.png"}")`;
+    col.style.backgroundImage = `url("assets/${(!cog.blocked && "cog_bg.png") || "cog_blank.png"}")`;
     col.style.backgroundPosition = "center";
     col.style.backgroundSize = "cover";
     if (col.classList.contains("toMove")) {
@@ -128,7 +128,7 @@ class BoardRenderer {
 
       if (cog.icon === "Blank") {
         div.innerHTML = "";
-        div.style.backgroundImage = `url("assets/cog_blank.png")`;
+        div.style.backgroundImage = "";
       } else if (cog.icon.startsWith("Equipment")) {
         div.style.backgroundImage = `url("icons/hats/${cog.icon}.png")`;
         div.innerHTML = `<div style="word-break: break-all;font-size: 8px;line-height: 1.4;padding: 2px;">${cog.icon.substr(7)}` + "</div>";
