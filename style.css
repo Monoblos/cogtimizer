@@ -137,6 +137,7 @@ ul.menu > li#cogbtn {
 
 .content {
     border: 4px solid #b47848;
+    border-radius: 7px;
     color: #f4fcff;
     display: flex;
     flex-direction: column;
@@ -312,11 +313,14 @@ table.cogboard tr > td {
     font-family: 'PressStart';
     font-size: 4em;
     z-index: 1;
+    animation: blink 1s ease-in-out alternate infinite;
+}
+
+#notify > span {
     color: #f4fcff;
     background-image: -webkit-linear-gradient(top, #f4fcff 0%, #f4fcff 51%, #c0d9e3 51%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: blink 1s ease-in-out alternate infinite;
 }
 
 @keyframes blink {
