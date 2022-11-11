@@ -459,6 +459,28 @@
 
       function load(save) {
         console.log("Loading");
+
+        const hatIcons = {};
+        save["playerNames"].forEach((v, i) => {
+          const equipmentSlot = `EquipOrder_${i}`;
+          const equipment = save[equipmentSlot];
+          let hatFound = false;
+
+          equipment.forEach((slots) => {
+            const length = slots.length;
+            for (let i = 0; i < length; i++) {
+              const eqName = slots[i];
+              if (eqName.indexOf("Hats") !== -1) {
+                hatIcons[v] = "hats/" + eqName + "_x1";
+                hatFound = true;
+                break;
+              }
+            }
+          });
+          if (!hatFound) {
+            hatIcons[v] = "head";
+          }
+        });
         // Fetch Gem-Shop flaggy upgrades
         document.getElementById("flaggyShop").value = JSON.parse(save["GemItemsPurchased"])[118];
         // Fetch the list of available cogs
@@ -466,7 +488,7 @@
         let i = 0;
         const cogIcons = JSON.parse(save["CogO"]).map(c=>{
           if(c === "Blank") { return c; }
-          if(c.startsWith("Player")) { return c; }
+          if(c.startsWith("Player")) { return hatIcons[c.substring(7)]; }
           if(c === "CogY") { return "Yang_Cog"; }
           const parsed=c.match(/^Cog([0123YZ])(.{2,3})$/);
           if(parsed[1] === "Z") {
@@ -506,8 +528,8 @@
         }
         window.spareRenderer.showPage(0);
         sparePage.goto(0);
-        for (let i = 107; i < slots.length; i++) {
-          const index = (i - 107);
+        for (let i = 108; i < slots.length; i++) {
+          const index = (i - 108);
           const row = Math.floor(index / 3); // 3 since the spare board has 3 columns per row
           const col = index % 3;
           window.spareRenderer.set(row, col, slots[i]);

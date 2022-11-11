@@ -147,6 +147,12 @@ ul.menu > li#cogbtn {
     top: 10px;
 }
 
+table.cogboard tr > td,
+table.cogboard tr > td > div {
+    /* background-size: contain; */
+    background-repeat: no-repeat;
+}
+
 table.cogboard tr > td {
     position: relative;
     display: inline-block;
@@ -159,8 +165,8 @@ table.cogboard tr > td {
     border-bottom-width: 2px;
 
     background-image: url("cog_blank.png");
-    background-size: contain;
 }
+
 .info table.cogboard tr > td {
     background-image: url("cog_bg.png");
 }
