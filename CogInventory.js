@@ -214,6 +214,8 @@ class CogInventory {
     for (const cog of cogArray) {
       this.cogs[cog.key] = cog;
     }
+
+    document.getElementById("notify").style.display = "none";
   }
   
   setWeights(buildRate, expBonus, flaggy) {
