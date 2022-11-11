@@ -154,26 +154,29 @@ class CogInventory {
     console.log("Loading");
 
     const hatIcons = {};
-    save["playerNames"].forEach((v, i) => {
-      const equipmentSlot = `EquipOrder_${i}`;
-      const equipment = save[equipmentSlot];
-      let hatFound = false;
+    const playerNames = save["playerNames"];
+    if (playerNames) {
+      playerNames.forEach((v, i) => {
+        const equipmentSlot = `EquipOrder_${i}`;
+        const equipment = save[equipmentSlot];
+        let hatFound = false;
 
-      equipment.forEach((slots) => {
-        const length = slots.length;
-        for (let i = 0; i < length; i++) {
-          const eqName = slots[i];
-          if (eqName.indexOf("Hats") !== -1) {
-            hatIcons[v] = eqName + "_x1";
-            hatFound = true;
-            break;
+        equipment.forEach((slots) => {
+          const length = slots.length;
+          for (let i = 0; i < length; i++) {
+            const eqName = slots[i];
+            if (eqName.indexOf("Hats") !== -1) {
+              hatIcons[v] = eqName + "_x1";
+              hatFound = true;
+              break;
+            }
           }
+        });
+        if (!hatFound) {
+          hatIcons[v] = "head";
         }
       });
-      if (!hatFound) {
-        hatIcons[v] = "head";
-      }
-    });
+    }
 
     // Fetch Gem-Shop flaggy upgrades
     this.flaggyShopUpgrades = JSON.parse(save["GemItemsPurchased"])[118];
@@ -181,7 +184,7 @@ class CogInventory {
     const cogRaw = JSON.parse(save["CogM"]);
     const cogIcons = JSON.parse(save["CogO"]).map(c=>{
       if(c === "Blank") { return c; }
-      if(c.startsWith("Player")) { return hatIcons[c.substring(7)]; }
+      if(c.startsWith("Player")) { return playerNames ? hatIcons[c.substring(7)] : "head"; }
       if(c === "CogY") { return "Yang_Cog"; }
       const parsed=c.match(/^Cog([0123YZ])(.{2,3})$/);
       if(parsed[1] === "Z") {
@@ -262,86 +265,83 @@ class CogInventory {
 
     const board = this.board;
     const bonusGrid = Array(INV_ROWS).fill(0).map(() => { return Array(INV_COLUMNS).fill(0).map(() => { return { ...result } })});
-    for (let i = 0; i < board.length; i++) {
-      for (let j = 0; j < board[i].length; j++) {
-        const entry = board[i][j];
-        if (!entry) continue;
-        const boosted = [];
-        switch (entry.boostRadius) {
-          case "diagonal":
-            boosted.push([i-1, j-1],[i-1, j+1],[i+1, j-1],[i+1, j+1]);
-            break;
-          case "adjacent":
-            boosted.push([i-1, j],[i, j+1],[i+1, j],[i, j-1]);
-            break;
-          case "up":
-            boosted.push([i-2, j-1],[i-2, j],[i-2, j+1],[i-1, j-1],[i-1, j],[i-1, j+1]);
-            break;
-          case "right":
-            boosted.push([i-1, j+2],[i, j+2],[i+1, j+2],[i-1, j+1],[i, j+1],[i+1, j+1]);
-            break;
-          case "down":
-            boosted.push([i+2, j-1],[i+2, j],[i+2, j+1],[i+1, j-1],[i+1, j],[i+1, j+1]);
-            break;
-          case "left":
-            boosted.push([i-1, j-2],[i, j-2],[i+1, j-2],[i-1, j-1],[i, j-1],[i+1, j-1]);
-            break;
-          case "row":
-            for (let k = 0; k < INV_COLUMNS; k++) {
-              if(j == k) continue;
-              boosted.push([i, k]);
+    for (let key of this.availableSlotKeys) {
+      const entry = this.get(key);
+      if (!entry.boostRadius) continue;
+      const boosted = [];
+      const { x: j, y: i } = entry.position();
+      switch (entry.boostRadius) {
+        case "diagonal":
+          boosted.push([i-1, j-1],[i-1, j+1],[i+1, j-1],[i+1, j+1]);
+          break;
+        case "adjacent":
+          boosted.push([i-1, j],[i, j+1],[i+1, j],[i, j-1]);
+          break;
+        case "up":
+          boosted.push([i-2, j-1],[i-2, j],[i-2, j+1],[i-1, j-1],[i-1, j],[i-1, j+1]);
+          break;
+        case "right":
+          boosted.push([i-1, j+2],[i, j+2],[i+1, j+2],[i-1, j+1],[i, j+1],[i+1, j+1]);
+          break;
+        case "down":
+          boosted.push([i+2, j-1],[i+2, j],[i+2, j+1],[i+1, j-1],[i+1, j],[i+1, j+1]);
+          break;
+        case "left":
+          boosted.push([i-1, j-2],[i, j-2],[i+1, j-2],[i-1, j-1],[i, j-1],[i+1, j-1]);
+          break;
+        case "row":
+          for (let k = 0; k < INV_COLUMNS; k++) {
+            if(j == k) continue;
+            boosted.push([i, k]);
+          }
+          break;
+        case "column":
+          for (let k = 0; k < INV_ROWS; k++) {
+            if(i == k) continue;
+            boosted.push([k, j]);
+          }
+          break;
+        case "corner":
+          boosted.push([i-2, j-2],[i-2, j+2],[i+2, j-2],[i+2, j+2]);
+          break;
+        case "around":
+          boosted.push([i-2, j],[i-1, j-1],[i-1, j],[i-1, j+1],[i, j-2],[i, j-1],[i, j+1],[i, j+2],[i+1, j-1],[i+1, j],[i+1, j+1],[i+2, j]);
+          break;
+        case "everything":
+          for (let k = 0; k < INV_ROWS; k++) {
+            for (let l = 0; l < INV_COLUMNS; l++) {
+              if(i === k && j === l) continue;
+              boosted.push([k, l]);
             }
-            break;
-          case "column":
-            for (let k = 0; k < INV_ROWS; k++) {
-              if(i == k) continue;
-              boosted.push([k, j]);
-            }
-            break;
-          case "corner":
-            boosted.push([i-2, j-2],[i-2, j+2],[i+2, j-2],[i+2, j+2]);
-            break;
-          case "around":
-            boosted.push([i-2, j],[i-1, j-1],[i-1, j],[i-1, j+1],[i, j-2],[i, j-1],[i, j+1],[i, j+2],[i+1, j-1],[i+1, j],[i+1, j+1],[i+2, j]);
-            break;
-          case "everything":
-            for (let k = 0; k < INV_ROWS; k++) {
-              for (let l = 0; l < INV_COLUMNS; l++) {
-                if(i === k && j === l) continue;
-                boosted.push([k, l]);
-              }
-            }
-            break;
-          default:
-            break;
-        }
-        for (const boostCord of boosted) {
-          const bonus = CogInventory._saveGet(bonusGrid, ...boostCord);
-          if (!bonus) continue;
-          bonus.buildRate += entry.buildRadiusBoost  || 0;
-          bonus.expBonus  += entry.expRadiusBoost    || 0;
-          bonus.flaggy    += entry.flaggyRadiusBoost || 0;
-        }
+          }
+          break;
+        default:
+          break;
+      }
+      for (const boostCord of boosted) {
+        const bonus = CogInventory._saveGet(bonusGrid, ...boostCord);
+        if (!bonus) continue;
+        bonus.buildRate += entry.buildRadiusBoost  || 0;
+        bonus.expBonus  += entry.expRadiusBoost    || 0;
+        bonus.flaggy    += entry.flaggyRadiusBoost || 0;
       }
     }
+ 
     // Bonus grid done, now we can sum everything up
-    for (let i = 0; i < board.length; i++) {
-      for (let j = 0; j < board[i].length; j++) {
-        const entry = board[i][j];
-        if (!entry) continue;
-        result.buildRate += entry.buildRate || 0;
-        result.expBonus += entry.expBonus || 0;
-        result.flaggy += entry.flaggy || 0;
-        const bonus = bonusGrid[i][j];
-        if (!bonus) continue;
-        const b = (bonus.buildRate || 0) / 100;
-        result.buildRate += Math.ceil((entry.buildRate || 0) * b);
-        // TODO: Apply exp bonus for players
-        const e = 0; // (bonus.expBonus || 0) / 100;
-        result.expBonus += Math.ceil((entry.expBonus || 0) * e);
-        const f = (bonus.flaggy || 0) / 100;
-        result.flaggy += Math.ceil((entry.flaggy || 0) * f);
-      }
+    for (let key of this.availableSlotKeys) {
+      const entry = this.get(key);
+      result.buildRate += entry.buildRate || 0;
+      result.expBonus += entry.expBonus || 0;
+      result.flaggy += entry.flaggy || 0;
+      const pos = entry.position();
+      const bonus = bonusGrid[pos.y][pos.x];
+      const b = (bonus.buildRate || 0) / 100;
+      result.buildRate += Math.ceil((entry.buildRate || 0) * b);
+      // TODO: Apply exp bonus for players
+      const e = 0; // (bonus.expBonus || 0) / 100;
+      result.expBonus += Math.ceil((entry.expBonus || 0) * e);
+      const f = (bonus.flaggy || 0) / 100;
+      result.flaggy += Math.ceil((entry.flaggy || 0) * f);
     }
     result.flaggy = Math.floor(result.flaggy * (1 + this.flaggyShopUpgrades * 0.5));
     return this._score = result;
