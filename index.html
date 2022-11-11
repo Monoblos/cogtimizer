@@ -22,7 +22,7 @@
       <div>
         <!-- <button id="fetch" style="max-width: 15ch;">Fetch</button> -->
         <button id="load" style="max-width: 15ch;">Load</button>
-        <button id="solve" style="max-width: 15ch;">Solve</button>
+        <button id="solve" style="max-width: 15ch;" disabled>Solve</button>
       </div>
     </div>
     <div class="menucontainer">
@@ -258,11 +258,14 @@
 
         const initScore = cogInvetory.score;
         f.printBoard(cogInvetory.board);
-        openCogTab();
+
+        document.getElementById("solve").disabled = "";
         document.getElementById("steps").innerHTML = "";
         document.getElementById("buildrate").innerText = mmoifyNumber(initScore.buildRate, false) + "/HR";
         document.getElementById("xpbonus").innerText = mmoifyNumber(initScore.expBonus, false) + "%";
         document.getElementById("flaggyrate").innerText = mmoifyNumber(initScore.flaggy, false) + "/HR";
+
+        openCogTab();
       }
       
       function fetchAndLoadConfig(username) {
