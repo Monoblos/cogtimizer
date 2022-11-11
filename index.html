@@ -187,7 +187,7 @@
       
       f.printOptimalSteps = (board, cogs) => {
         document.getElementById("steps").innerHTML = "";
-        const cogsToMove = Object.values(cogs).map(c=>{return {...c}})
+        const cogsToMove = Object.values(cogs).map(c=>{return new Cog(c)})
           .filter((c) => c.key !== c.initialKey);
         const interimCogs = {};
         // Remove spare movements
@@ -203,11 +203,11 @@
         // Easy switches
         for (const cog of cogsToMove) {
           const targetCog = interimCogs[cog.key];
-          if (!targetCog || targetCog.initialKey !== cog.key); {
+          if (!targetCog || targetCog.initialKey !== cog.key) {
             interimCogs[cog.initialKey] = cog;
             continue;
           }
-          f.printMove(board, cog, targetCog, cog.position(Number.parseInt(key)), targetCog.position(Number.parseInt(cog.key)));
+          f.printMove(board, cog, targetCog, cog.position(Number.parseInt(cog.initialKey)), targetCog.position(Number.parseInt(cog.key)));
           delete interimCogs[cog.key];
         }
         // Multi-step movements
@@ -307,13 +307,12 @@
 
         console.log("Starting");
 
-        let start = f.cloneState(g.cogs, g.board);
-        start.score = f.getScore(start.board);
-        start.scoreSum = f.getScoreSum(start.score);
+        let start = cogInvetory.clone();
 
-        document.getElementById("start").innerText = `Starting BuildRate: ${start.score.buildRate}, EXP: ${start.score.expBonus}, Flaggy: ${start.score.flaggy}, Sum: ${start.scoreSum}`;
-        const best = await solver.solve(solveTime);
-        document.getElementById("end").innerText = `Final BuildRate: ${best.score.buildRate}, EXP: ${best.score.expBonus}, Flaggy: ${best.score.flaggy}, Sum: ${best.scoreSum}`;
+        document.getElementById("start").innerText = `Starting BuildRate: ${start.score.buildRate}, EXP: ${start.score.expBonus}, Flaggy: ${start.score.flaggy}`;
+        solver.setWeights(getInput("buildRate"), getInput("expBonus"), getInput("flaggy"));
+        const best = await solver.solve(cogInvetory, solveTime);
+        document.getElementById("end").innerText = `Final BuildRate: ${best.score.buildRate}, EXP: ${best.score.expBonus}, Flaggy: ${best.score.flaggy}`;
         
         document.getElementById("buildrate").innerText = `${mmoifyNumber(best.score.buildRate - start.score.buildRate)}/HR`;
         document.getElementById("xpbonus").innerText = `${mmoifyNumber(best.score.expBonus - start.score.expBonus)}%`;
