@@ -6,6 +6,8 @@
     <meta name="color-scheme" content="dark light" />
 
     <link rel="stylesheet" href="style.css" />
+    <script type="text/javascript" src="Solver.js"></script>
+    <script type="text/javascript" src="CogInventory.js"></script>
     <script type="text/javascript" src="BoardRenderer.js"></script>
     <script type="text/javascript" src="Paginator.js"></script>
     
@@ -57,15 +59,15 @@
           <div class="stats">
             <span class="buildrate">
               <h3>Total Build Rate</h3>
-              <p id="buildrate">N/A</p>
+              <p id="buildrate">Please</p>
             </span>
             <span class="xpbonus">
               <h3>Player XP Bonus</h3>
-              <p id="xpbonus">N/A</p>
+              <p id="xpbonus">load a</p>
             </span>
             <span class="flaggyrate">
               <h3>Flaggy Rate</h3>
-              <p id="flaggyrate">N/A</p>
+              <p id="flaggyrate">Savegame</p>
             </span>
           </div>
         </div>
@@ -81,48 +83,9 @@
       const ROWS = 8;
       const COLUMNS = 12;
       const OPTIMIZABLE = ["buildRate", "expBonus", "flaggy"];
-      const ICON_QUALITY_MAP = {
-          ["0"]: "Nooby",
-          ["1"]: "Decent",
-          ["2"]: "Superb",
-          ["3"]: "Ultimate",
-          ["Y"]: "Yang",
-          ["Z"]: "Yin"
-      };
-      const ICON_TYPE_MAP = {
-        ["A00"]: "Cog",
-        ["A0"]: "CogB",
-        ["A1"]: "Average",
-        ["A2"]: "Spur",
-        ["A3"]: "Stacked",
-        ["A4"]: "Deckered",
-        ["B0"]: "Double",
-        ["B1"]: "Trips",
-        ["B2"]: "Trabble",
-        ["B3"]: "Quad",
-        ["B4"]: "Penta",
-        ["ad"]: "Adjacent",
-        ["di"]: "Diagonal",
-        ["up"]: "Up",
-        ["do"]: "Down",
-        ["le"]: "Left",
-        ["ri"]: "Right",
-        ["ro"]: "Row",
-        ["co"]: "Column",
-        ["cr"]: "Corner",
-      };
-	    const YIN_MAP = {
-        ["A00"]: "Yin_Top_Left_Cog",
-        ["A01"]: "Yin_Top_Right_Cog",
-        ["A02"]: "Yin_Bottom_Left_Cog",
-        ["A03"]: "Yin_Bottom_Right_Cog"
-	  };
       
       const getInput = (id) => Number.parseInt(document.getElementById(id).value);
       const getFlaggyShop = getInput.bind(null, "flaggyShop");
-
-      const cogBlank = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAmCAYAAACoPemuAAABhWlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TpUWrDnYQcchQO1koKuIoVSyChdJWaNXB5NIvaNKQpLg4Cq4FBz8Wqw4uzro6uAqC4AeIo5OToouU+L+k0CLWg+N+vLv3uHsHCI0KU82eKKBqlpGKx8RsblX0vaIffgwiirDETD2RXsyg6/i6h4evdxGe1f3cn2NAyZsM8IjEc0w3LOIN4plNS+e8TxxkJUkhPieeMOiCxI9cl11+41x0WOCZQSOTmicOEovFDpY7mJUMlXiaOKSoGuULWZcVzluc1UqNte7JXxjIaytprtMcQxxLSCAJETJqKKMCCxFaNVJMpGg/1sU/6viT5JLJVQYjxwKqUCE5fvA/+N2tWZiadJMCMaD3xbY/xgHfLtCs2/b3sW03TwDvM3Cltf3VBjD7SXq9rYWOgKFt4OK6rcl7wOUOMPKkS4bkSF6aQqEAvJ/RN+WA4Vugb83trbWP0wcgQ10t3wAHh0C4SNnrXd7t7+zt3zOt/n4AuHlyw22PBoIAAAAGYktHRAD/AP8A/6C9p5MAAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQfmCwgOMhatl4frAAAAGXRFWHRDb21tZW50AENyZWF0ZWQgd2l0aCBHSU1QV4EOFwAAARNJREFUWMPtmM0KgzAMxzMJgiAivsQeZI+y9xdRURBhO+wwKWmSxh56SI7a/vPLh2nx8X49P1CgIQDA0NVFQY3zARUUag5m6jFNzS12p3cxNwylYQFEDkgjqAkgXKPRRU6AchqKck5i0JrgMXQiZUADG3tO7R3ng9yPlFhqf8XWa7NLZRAlQQkyx6khZowilyCt4Ny+ad3/YFLjD12dpczXgDktnNY9eSbdmXFUVSi96o5wjgEc+yqLOCuzZMyvPQ7GzCxqMqBFqG+bpPWcxbQwVTgU0s5BLRALJsFYgaSgru9Rcta3jTkrqTrXNqlCqFylsmZ4WndYthNw2U4A2LOD+BxzMAdzMAdzMMPfnt+xVJZ9ATWPsYm30CgcAAAAAElFTkSuQmCC";
-      const cogBg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAmCAYAAACoPemuAAABhWlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TpUWrDnYQcchQO1koKuIoVSyChdJWaNXB5NIvaNKQpLg4Cq4FBz8Wqw4uzro6uAqC4AeIo5OToouU+L+k0CLWg+N+vLv3uHsHCI0KU82eKKBqlpGKx8RsblX0vaIffgwiirDETD2RXsyg6/i6h4evdxGe1f3cn2NAyZsM8IjEc0w3LOIN4plNS+e8TxxkJUkhPieeMOiCxI9cl11+41x0WOCZQSOTmicOEovFDpY7mJUMlXiaOKSoGuULWZcVzluc1UqNte7JXxjIaytprtMcQxxLSCAJETJqKKMCCxFaNVJMpGg/1sU/6viT5JLJVQYjxwKqUCE5fvA/+N2tWZiadJMCMaD3xbY/xgHfLtCs2/b3sW03TwDvM3Cltf3VBjD7SXq9rYWOgKFt4OK6rcl7wOUOMPKkS4bkSF6aQqEAvJ/RN+WA4Vugb83trbWP0wcgQ10t3wAHh0C4SNnrXd7t7+zt3zOt/n4AuHlyw22PBoIAAAAGYktHRAD/AP8A/6C9p5MAAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQfmCwgOOyi9NCEJAAAAGXRFWHRDb21tZW50AENyZWF0ZWQgd2l0aCBHSU1QV4EOFwAAAVRJREFUWMPtmDEKwjAUhp/liS09gFcoODg6eYFunsClZ/ASXsFLuHgBvYLg2FXcCmJLBR3EEmOal6TBRsibSpr8/5f3khAyWC9nD3AwEABgszsBAECWJs33r4P1ztIEAnA08E3oQrAcH6XsM1iGLE1eYFSMwqGRWVXW3UppE0akYQKIMiAVQZUJ8H1UdFEmIDLlRWUmbdAqk0fehMqACmxbu2jsKBwKx6NITHd9tfVXza4og0gJUpBddp5MAylyCtIUnBqHqgu/KmsrZWYnLNNC3S1vAkdVRaQXdBG2cQC37UonbhdWMvar8GB/BxZHCHH0fc7jpSi1ha63u1Z/WYi0LkVJXxR5YV6IMtYBIi+KFIwpEDUp9j+qmJlmRVeHXSaBbXNb8IFLUP4c82AezIOZvl3MJ+OmYX889wLCMjQZ2x5y2B7y3rPEcjhbysFqMXXycfgJ3ImUN+Kk6UcAAAAASUVORK5CYII=";
 
       const createElem = function createElem(tagName, style=undefined) {
         const elem = document.createElement(tagName);
@@ -130,49 +93,6 @@
           elem.style = style;
         }
         return elem;
-      }
-
-      Cog = function (initialValues = {}) {
-        return {
-          _key: initialValues.key,
-          get key() { return this._key },
-          set key(v) { this._position = null; this._key = v },
-          icon: initialValues.icon,
-          initialKey: initialValues.initialKey,
-          buildRate: initialValues.buildRate,
-          isPlayer: initialValues.isPlayer,
-          expGain: initialValues.expGain,
-          flaggy: initialValues.flaggy,
-          expBonus: initialValues.expBonus,
-          buildRadiusBoost: initialValues.buildRadiusBoost,
-          expRadiusBoost: initialValues.expRadiusBoost,
-          flaggyRadiusBoost: initialValues.flaggyRadiusBoost,
-          boostRadius: initialValues.boostRadius,
-		  flagSpeed: initialValues.flagSpeed,
-		  nothing: initialValues.nothing, // Description: Nothing LoL
-          fixed: initialValues.fixed,
-          blocked: initialValues.blocked,
-          _position: null,
-          position(keyNum) {
-            if (this._position && !keyNum) return this._position;
-            keyNum = keyNum || Number.parseInt(this.key);
-            // build = 97-107
-            // spare = 108-*
-            // board = 0-96
-            const location = keyNum >= 96 ? keyNum <= 107 ? "build" : "spare" : "board";
-            let perRow = 3;
-            let offset = 108;
-            if (location === "board") {
-              perRow = 12;
-              offset = 0;
-            } else if (location === "build") {
-              offset = 96;
-            }
-            const y = Math.floor((keyNum - offset) / perRow);
-            const x = Math.floor((keyNum - offset) % perRow);
-            return this._position = { location, x, y };
-          }
-        };
       }
       
       window.g = {
@@ -184,6 +104,8 @@
 
       window.boardRenderer = new BoardRenderer(ROWS, COLUMNS, "board");
       window.spareRenderer = new BoardRenderer(30, 3, "spare", 5);
+      window.solver = new Solver();
+      window.cogInvetory = new CogInventory();
 
       const sparePage = new Paginator("sparepage", window.spareRenderer._pageCount, 1);
       sparePage.addEventListener("change", (ev) => {
@@ -201,7 +123,6 @@
       const stepsPage = new Paginator("stepspage", 0, 0, "Step");
       stepsPage.addEventListener("change", console.log);
 
-
       const spareElem = document.getElementById("spare");
       const spareParent = spareElem.parentNode;
       spareParent.insertBefore(window.spareRenderer.createHTMLElement(), spareElem);
@@ -218,109 +139,12 @@
           }
         }
       }
-      
-      f.getScore = (board) => {
-        const result = {
-          buildRate: 0,
-          expBonus: 0,
-          flaggy: 0
-        };
-        const bonusGrid = Array(ROWS).fill(0).map(() => { return Array(COLUMNS).fill(0).map(() => { return { ...result } })});
-        for (let i = 0; i < board.length; i++) {
-          for (let j = 0; j < board[i].length; j++) {
-            const entry = board[i][j];
-            if (!entry) continue;
-            const boosted = [];
-            switch (entry.boostRadius) {
-              case "diagonal":
-                boosted.push([i-1, j-1],[i-1, j+1],[i+1, j-1],[i+1, j+1]);
-                break;
-              case "adjacent":
-                boosted.push([i-1, j],[i, j+1],[i+1, j],[i, j-1]);
-                break;
-              case "up":
-                boosted.push([i-2, j-1],[i-2, j],[i-2, j+1],[i-1, j-1],[i-1, j],[i-1, j+1]);
-                break;
-              case "right":
-                boosted.push([i-1, j+2],[i, j+2],[i+1, j+2],[i-1, j+1],[i, j+1],[i+1, j+1]);
-                break;
-              case "down":
-                boosted.push([i+2, j-1],[i+2, j],[i+2, j+1],[i+1, j-1],[i+1, j],[i+1, j+1]);
-                break;
-              case "left":
-                boosted.push([i-1, j-2],[i, j-2],[i+1, j-2],[i-1, j-1],[i, j-1],[i+1, j-1]);
-                break;
-              case "row":
-                for (let k = 0; k < COLUMNS; k++) {
-                  if(j == k) continue;
-                  boosted.push([i, k]);
-                }
-                break;
-              case "column":
-                for (let k = 0; k < ROWS; k++) {
-                  if(i == k) continue;
-                  boosted.push([k, j]);
-                }
-                break;
-              case "corner":
-                boosted.push([i-2, j-2],[i-2, j+2],[i+2, j-2],[i+2, j+2]);
-                break;
-              case "around":
-                boosted.push([i-2, j],[i-1, j-1],[i-1, j],[i-1, j+1],[i, j-2],[i, j-1],[i, j+1],[i, j+2],[i+1, j-1],[i+1, j],[i+1, j+1],[i+2, j]);
-                break;
-              case "excogia":
-                for (let k = 0; k < ROWS; k++) {
-                  for (let l = 0; l < COLUMNS; l++) {
-                    if(i === k && j === l) continue;
-                    boosted.push([k, l]);
-                  }
-                }
-                break;
-              default:
-                break;
-            }
-            for (const boostCord of boosted) {
-              const bonus = saveGet(bonusGrid, ...boostCord);
-              if (!bonus) continue;
-              bonus.buildRate += entry.buildRadiusBoost  || 0;
-              bonus.expBonus  += entry.expRadiusBoost    || 0;
-              bonus.flaggy    += entry.flaggyRadiusBoost || 0;
-            }
-          }
-        }
-        for (let i = 0; i < board.length; i++) {
-          for (let j = 0; j < board[i].length; j++) {
-            const entry = board[i][j];
-            if (!entry) continue;
-            result.buildRate += entry.buildRate || 0;
-            result.expBonus += entry.expBonus || 0;
-            result.flaggy += entry.flaggy || 0;
-            const bonus = bonusGrid[i][j];
-            if (!bonus) continue;
-            const b = (bonus.buildRate || 0) / 100;
-            result.buildRate += Math.ceil((entry.buildRate || 0) * b);
-            const e = (bonus.expBonus || 0) / 100;
-            result.expBonus += Math.ceil((entry.expBonus || 0) * e);
-            const f = (bonus.flaggy || 0) / 100;
-            result.flaggy += Math.ceil((entry.flaggy || 0) * f);
-          }
-        }
-        result.flaggy = Math.floor(result.flaggy * (1 + getFlaggyShop() * 0.5));
-        return result;
-      }
-      
-      f.getScoreSum = (score) => {
-        let res = 0;
-        for (const opt of OPTIMIZABLE) {
-          res += score[opt] * getInput(opt);
-        }
-        return res;
-      }
 
       let moveIndex = 0;
+      //TODO Paddy: Kann so schlecht resettet werden (und wird aktuell nicht genutzt)
       const moves = [];
-	  
-	    f.printMove = (board, cog1, cog2, pos1, pos2) => {
+      
+      f.printMove = (board, cog1, cog2, pos1, pos2) => {
         moves.push({pos1, pos2});
         const toAdd = createElem("p");
         toAdd.innerHTML = `Switch ${pos1.location} \
@@ -333,7 +157,7 @@
           window.boardRenderer.move(pos1, pos2);
           window.spareRenderer.move(pos1, pos2);
         }
-        steps.appendChild(toAdd);
+        document.getElementById("steps").appendChild(toAdd);
       }
       
       f.printBoard = (board, cord1={},cord2={}) => {
@@ -348,62 +172,11 @@
         console.log("Board updated");
       }
       
-      function saveGet(arr, ...indexes) {
-        while(indexes.length) {
-          if (arr === undefined) break;
-          arr = arr[indexes.splice(0, 1)[0]];
-        }
-        return arr;
+      function yield() {
+        return new Promise(r=>setTimeout(r,1));
       }
       
-      f.cloneState = (cogs, board) => {
-        const c = {};
-        for (let [k,v] of Object.entries(cogs)) {
-          c[k] = new Cog(v);
-        }
-        const b = board.map((r)=>r.map((c)=>{return new Cog(c)}));
-        return { cogs: c, board: b };
-      }
-	  
-	    f.removeUselesMoves = (board, cogs) => {
-	    const goal = f.getScore(board);
-        const cogsToMove = Object.values(cogs)
-          .filter((c) => c.key !== c.initialKey);
-        // Check if move still changes something
-        for (let i = 0; i < cogsToMove.length; i++) {
-          const cog1 = cogsToMove[i];
-          const cog1Key = cog1.key;
-          const pos1 = cog1.position();
-          const cog2Key = cog1.initialKey;
-          const cog2 = cogs[cog2Key];
-          const pos2 = cog2.position();
-          if (pos1.location === "board") {
-            board[pos1.y][pos1.x] = cog2;
-          }
-          if (pos2.location === "board") {
-            board[pos2.y][pos2.x] = cog1;
-          }
-		  const changed = f.getScore(board);
-		  if (changed.buildRate === goal.buildRate
-		    && changed.flaggy === goal.flaggy
-			&& changed.expBonus === goal.expBonus) {
-            console.log(`Removing useless move ${cog1Key} to ${cog2Key}`);
-            cog1.key = cog2Key;
-            cogs[cog2Key] = cog1;
-            cog2.key = cog1Key;
-            cogs[cog1Key] = cog2;
-			continue;
-		  }
-          if (pos1.location === "board") {
-            board[pos1.y][pos1.x] = cog1;
-          }
-          if (pos2.location === "board") {
-            board[pos2.y][pos2.x] = cog2;
-          }
-        }
-	  }
-	  
-	    f.printOptimalSteps = (board, cogs) => {
+      f.printOptimalSteps = (board, cogs) => {
         document.getElementById("steps").innerHTML = "";
         const cogsToMove = Object.values(cogs).map(c=>{return {...c}})
           .filter((c) => c.key !== c.initialKey);
@@ -425,8 +198,7 @@
             interimCogs[cog.initialKey] = cog;
             continue;
           }
-          // TODO Monoblos: printMove erwartet 5 Argumente
-          f.printMove(board, cog, targetCog);
+          f.printMove(board, cog, targetCog, cog.position(Number.parseInt(key)), targetCog.position(Number.parseInt(cog.key)));
           delete interimCogs[cog.key];
         }
         // Multi-step movements
@@ -448,9 +220,9 @@
         let str = num;
 
         if (Math.abs(num) >= 1000000) {
-          str = (num / 1000000).toFixed(2) + "M";
+          str = (Math.ceil(num / 10000) / 100) + "M";
         } else if (Math.abs(num) >= 1000) {
-          str = (num / 1000).toFixed(2) + "K";
+          str = (Math.ceil(num / 10) / 100) + "K";
         }
 
         if (addSign && num >= 0) {
@@ -461,89 +233,22 @@
       }
 
       function load(save) {
+        cogInvetory.load(save);
         console.log("Loading");
-
-        const hatIcons = {};
-        save["playerNames"].forEach((v, i) => {
-          const equipmentSlot = `EquipOrder_${i}`;
-          const equipment = save[equipmentSlot];
-          let hatFound = false;
-
-          equipment.forEach((slots) => {
-            const length = slots.length;
-            for (let i = 0; i < length; i++) {
-              const eqName = slots[i];
-              if (eqName.indexOf("Hats") !== -1) {
-                hatIcons[v] = eqName + "_x1";
-                hatFound = true;
-                break;
-              }
-            }
-          });
-          if (!hatFound) {
-            hatIcons[v] = "head";
-          }
-        });
         // Fetch Gem-Shop flaggy upgrades
-        document.getElementById("flaggyShop").value = JSON.parse(save["GemItemsPurchased"])[118];
-        // Fetch the list of available cogs
-        const cogRaw = JSON.parse(save["CogM"]);
-        let i = 0;
-        const cogIcons = JSON.parse(save["CogO"]).map(c=>{
-          if(c === "Blank") { return c; }
-          if(c.startsWith("Player")) { return hatIcons[c.substring(7)]; }
-          if(c === "CogY") { return "Yang_Cog"; }
-          const parsed=c.match(/^Cog([0123YZ])(.{2,3})$/);
-          if(parsed[1] === "Z") {
-            return YIN_MAP[parsed[2]];
-          }
-          return ICON_TYPE_MAP[parsed[2]] + "_" + ICON_QUALITY_MAP[parsed[1]];
-        });
-        const cogArray = Object.entries(cogRaw).map(([key, c]) => {
-          return new Cog({
-            key: key,
-            initialKey: key,
-            icon: cogIcons[key] || "Blank",
-            buildRate: c.a,
-            isPlayer: c.b > 0,
-            expGain: c.b,
-            flaggy: c.c,
-            expBonus: c.d,
-            buildRadiusBoost: c.e,
-            expRadiusBoost: c.f,
-            flaggyRadiusBoost: c.g,
-            boostRadius: c.h,
-            flagSpeed: c.j,
-            nothing: c.k,
-            fixed: c.h === "everything" || c.j > 0,
-            blocked: false
-          });
-        });
-        // Get the available board
-        const slots = JSON.parse(save["FlagU"]).map((n) => {
-          if(n !== -11) return { fixed: true, blocked: true };
-          return {};
-        });
-        g.cogs = {};
-        for (const cog of cogArray) {
-          slots[cog.key] = cog;
-          g.cogs[cog.key] = cog;
-        }
+        document.getElementById("flaggyShop").value = cogInvetory.flaggyShopUpgrades;
         window.spareRenderer.showPage(0);
         sparePage.goto(0);
-        for (let i = 108; i < slots.length; i++) {
+        for (let i = 108; i < 200; i++) {
+          if (!cogInvetory.cogs[i]) continue;
           const index = (i - 108);
           const row = Math.floor(index / 3); // 3 since the spare board has 3 columns per row
           const col = index % 3;
-          window.spareRenderer.set(row, col, slots[i]);
+          window.spareRenderer.set(row, col, cogInvetory.cogs[i]);
         };
-        g.board = [];
-        for (let i = 0; i < ROWS; i++) {
-          g.board.push(slots.splice(0, COLUMNS));
-        }
 
-        const initScore = f.getScore(g.board);
-        f.printBoard(g.board);
+        const initScore = cogInvetory.score;
+        f.printBoard(cogInvetory.board);
         openCogTab();
         document.getElementById("steps").innerHTML = "";
         document.getElementById("buildrate").innerText = mmoifyNumber(initScore.buildRate, false) + "/HR";
@@ -579,134 +284,29 @@
       document.getElementById("solve").onclick = async () => {
         const solveTime = getInput("solveTime") || 1000;
         document.getElementById("solve").innerText = "Optimizing...";
-        await new Promise(r=>setTimeout(r,1));
-
-        // TODO Moboblos: Kann die printMove funktion entfernt werden? es gibt ja f.printMove
-        const steps = document.getElementById("steps");
-        steps.innerHTML = "";
-        const printMove = (board, cog1, cog2, pos1, pos2) => {
-          const toAdd = document.createElement("p");
-          toAdd.innerText = `Switch ${pos1.location}[${pos1.x + 1}|${pos1.y + 1}] (${cog1.buildRate || 0}:${cog1.expBonus || 0}:${cog1.flaggy || 0}) with ${pos2.location}[${pos2.x + 1}|${pos2.y + 1}] (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0})`;
-          toAdd.onclick = () => f.printBoard(board, pos1, pos2);
-          steps.appendChild(toAdd);
-        }
-        // END TODO
-          
-        const shuffledStart = () => {
-          const state = f.cloneState(g.cogs, g.board);
-          state.score = f.getScore(state.board);
-          state.scoreSum = f.getScoreSum(state.score);
-          solutions.push(state);
-          const allKeys = Object.keys(state.cogs);
-          for (let i = 0; i < 500; i++) {
-            const cog1Key = allKeys[Math.floor(Math.random() * allKeys.length)];
-            const cog1 = state.cogs[cog1Key]
-            const pos1 = cog1.position();
-            const cog2Key = allKeys[Math.floor(Math.random() * allKeys.length)];
-            const cog2 = state.cogs[cog2Key];
-            const pos2 = cog2.position();
-            if (cog1.fixed || cog2.fixed || pos1.location === "build" || pos2.location === "build") continue;
-            if (pos1.location === "board") {
-              state.board[pos1.y][pos1.x] = cog2;
-            }
-            if (pos2.location === "board") {
-              state.board[pos2.y][pos2.x] = cog1;
-            }
-            cog1.key = cog2Key;
-            state.cogs[cog2Key] = cog1;
-            cog2.key = cog1Key;
-            state.cogs[cog1Key] = cog2;
-          }
-          return state;
-        }
+        document.getElementById("steps").innerHTML = "";
+        let lastYield = Date.now();
+        await yield(); // Yield for DOM-Refresh
 
         console.log("Starting");
 
-        let state = f.cloneState(g.cogs, g.board);
-        state.score = f.getScore(state.board);
-        state.scoreSum = f.getScoreSum(state.score);
+        let start = f.cloneState(g.cogs, g.board);
+        start.score = f.getScore(start.board);
+        start.scoreSum = f.getScoreSum(start.score);
 
-        const initBuildRate = state.score.buildRate;
-        const initExpBonus = state.score.expBonus;
-        const initFlaggy = state.score.flaggy;
-        const initScore = state.scoreSum;
-
-        document.getElementById("start").innerText = `Starting BuildRate: ${state.score.buildRate}, EXP: ${state.score.expBonus}, Flaggy: ${state.score.flaggy}, Sum: ${state.scoreSum}`;
-        const solutions = [state];
-        const allKeys = Object.keys(g.cogs);
-        const startTime = Date.now();
-        let counter = 0;
-        console.log("Trying to optimize");
-        while(Date.now() - startTime < solveTime) {
-          counter++;
-          if (counter % 10000 === 0) {
-            f.verifyBoardIntegrity(state.board);
-            state = shuffledStart();
-          }
-          const cog1Key = allKeys[Math.floor(Math.random() * allKeys.length)];
-          const cog1 = state.cogs[cog1Key]
-          const pos1 = cog1.position();
-          const cog2Key = allKeys[Math.floor(Math.random() * allKeys.length)];
-          const cog2 = state.cogs[cog2Key];
-          const pos2 = cog2.position();
-          if (pos1.location !== "board" && pos2.location !== "board") continue;
-          if (cog1.fixed || cog2.fixed || pos1.location === "build" || pos2.location === "build") continue;
-          if (pos1.location === "board") {
-            state.board[pos1.y][pos1.x] = cog2;
-          }
-          if (pos2.location === "board") {
-            state.board[pos2.y][pos2.x] = cog1;
-          }
-          const scoreUpdate = f.getScore(state.board);
-          const scoreSumUpdate = f.getScoreSum(scoreUpdate);
-          if (scoreSumUpdate > state.scoreSum) {
-            state.score = scoreUpdate;
-            state.scoreSum = scoreSumUpdate;
-            
-            cog1.key = cog2Key;
-            state.cogs[cog2Key] = cog1;
-            cog2.key = cog1Key;
-            state.cogs[cog1Key] = cog2;
-          } else {
-            if (pos1.location === "board") {
-              state.board[pos1.y][pos1.x] = cog1;
-            }
-            if (pos2.location === "board") {
-              state.board[pos2.y][pos2.x] = cog2;
-            }
-          }
-        }
-        console.log(`Tried ${counter} switches`);
-        console.log(`Made ${solutions.length} different attempts with final scores: ${solutions.map(s=>s.scoreSum)}`);
-        let best = solutions.reduce((a, b) => a.scoreSum >= b.scoreSum ? a : b);
-        const bestIndex = solutions.indexOf(best);
-        if (g.best === null || g.best.scoreSum < best.scoreSum) {
-          console.log("Best solution was number", bestIndex);
-          g.best = best;
-        } else {
-          best = g.best;
-        }
-        if (best.scoreSum !== f.getScoreSum(f.getScore(best.board))) {
-          debugger;
-        }
-        for (let i = 1; i <= 5; i++) {
-          console.log("Removing usless moves", i);
-          f.removeUselesMoves(best.board, best.cogs);
-        }
-        f.verifyBoardIntegrity(best.board);
-        if (best.scoreSum !== f.getScoreSum(f.getScore(best.board))) {
-          debugger;
-        }
+        document.getElementById("start").innerText = `Starting BuildRate: ${start.score.buildRate}, EXP: ${start.score.expBonus}, Flaggy: ${start.score.flaggy}, Sum: ${start.scoreSum}`;
+        const best = await solver.solve(solveTime);
         document.getElementById("end").innerText = `Final BuildRate: ${best.score.buildRate}, EXP: ${best.score.expBonus}, Flaggy: ${best.score.flaggy}, Sum: ${best.scoreSum}`;
         
-        document.getElementById("buildrate").innerText = `${mmoifyNumber(best.score.buildRate - initBuildRate)}/HR`;
-        document.getElementById("xpbonus").innerText = `${mmoifyNumber(best.score.expBonus - initExpBonus)}%`;
-        document.getElementById("flaggyrate").innerText = `${mmoifyNumber(best.score.flaggy - initFlaggy)}/HR`;
+        document.getElementById("buildrate").innerText = `${mmoifyNumber(best.score.buildRate - start.score.buildRate)}/HR`;
+        document.getElementById("xpbonus").innerText = `${mmoifyNumber(best.score.expBonus - start.score.expBonus)}%`;
+        document.getElementById("flaggyrate").innerText = `${mmoifyNumber(best.score.flaggy - start.score.flaggy)}/HR`;
         
         f.printOptimalSteps(best.board, best.cogs);
         // f.printBoard(best.board);
+        // TODO Paddy: This opens the original board, not the board after solving
         openCogTab();
-	      document.getElementById("solve").innerText = "Solve";
+        document.getElementById("solve").innerText = "Solve";
       };
     
       function openCogTab() {
