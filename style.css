@@ -8,6 +8,44 @@ body {
     max-height: 100vh;
 }
 
+.inputarea {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 2em;
+}
+
+.inputarea textarea {
+    margin-bottom: 1em;
+}
+
+.inputarea button {
+    font-family: 'PressStart';
+    padding: 10px;
+    margin-right: 6px;
+    font-size: 10px;
+    box-shadow: 5px 5px 1px black;
+    border: 1px solid #c0d9e3;
+    border-radius: 5px;
+    cursor: pointer;
+
+    background: linear-gradient(top, transparent 49%, rgba(1,1,1,0.4) 51%);
+    background: -moz-linear-gradient(top, transparent 49%, rgba(1,1,1,0.4) 51%);
+    background: -webkit-linear-gradient(top, transparent 49%, rgba(1,1,1,0.4) 51%);
+    background-color: #608ba7;
+}
+
+.inputarea button:hover {
+    background-color: #194962;
+}
+
+#solve {
+    background-color: green;
+}
+
+#solve:hover {
+    background-color: rgb(0, 180, 0);
+}
+
 .paginator {
     display: flex;
     flex-direction: row;
@@ -39,24 +77,6 @@ body {
     vertical-align: middle;
     top: 3px;
     position: relative;
-}
-
-.inputarea {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 2em;
-}
-
-#fetch,
-#load,
-#solve {
-    padding: 3px 5px;
-    border: 1px solid #c0d9e3;
-    border-radius: 5px;
-}
-
-#solve {
-    background-color: green;
 }
 
 .menucontainer {

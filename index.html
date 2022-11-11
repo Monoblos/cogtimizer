@@ -5,19 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark light" />
 
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
     <link rel="stylesheet" href="style.css" />
     <script type="text/javascript" src="Solver.js"></script>
     <script type="text/javascript" src="CogInventory.js"></script>
     <script type="text/javascript" src="BoardRenderer.js"></script>
     <script type="text/javascript" src="Paginator.js"></script>
     
-    <title>IdleOn optimizer</title>
+    <title>Cogtimizer</title>
   </head>
   <body>
     <div class="inputarea">
+      <div>Enter config json or username</div>
       <textarea type="textarea" id="input" rows="10" cols="100"></textarea>
       <div>
-        <button id="fetch" style="max-width: 15ch;">Fetch</button>
+        <!-- <button id="fetch" style="max-width: 15ch;">Fetch</button> -->
         <button id="load" style="max-width: 15ch;">Load</button>
         <button id="solve" style="max-width: 15ch;">Solve</button>
       </div>
@@ -257,16 +260,14 @@
         document.getElementById("flaggyrate").innerText = mmoifyNumber(initScore.flaggy, false) + "/HR";
       }
       
-      document.getElementById("fetch").addEventListener("click", (ev) => {
-        const input = document.getElementById("input");
-        const name = input.value;
-        console.log("Trying to fetch", name);
-        if (name.length > 0) {
+      function fetchAndLoadConfig(username) {
+        console.log("Trying to fetch", username);
+        if (username.length > 0) {
           const headers = {
             "Content-Type": "text/json",
             method: "GET"
           };
-          fetch(`https://cdn.idleonefficiency.com/profiles/${name.toLowerCase()}.json`, headers)
+          fetch(`https://cdn.idleonefficiency.com/profiles/${username.toLowerCase()}.json`, headers)
           .then((response) => {
             return response.json();
           }).then((json) => {
@@ -275,11 +276,18 @@
             console.log(reason);
           })
         }
-      });
+      }
 
       document.getElementById("load").addEventListener("click", () => {
-        const save = JSON.parse(document.getElementById("input").value);
-        load(save);
+        const input = document.getElementById("input").value;
+        try {
+          const save = JSON.parse(input);
+          load(save);
+        } catch (e) {
+          if (e instanceof SyntaxError) {
+            fetchAndLoadConfig(input);
+          }
+        }
       });
       
       document.getElementById("solve").onclick = async () => {
