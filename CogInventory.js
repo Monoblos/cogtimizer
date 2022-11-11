@@ -152,13 +152,36 @@ class CogInventory {
     this.availableSlotKeys = [];
     this._score = null;
     console.log("Loading");
+
+    const hatIcons = {};
+    save["playerNames"].forEach((v, i) => {
+      const equipmentSlot = `EquipOrder_${i}`;
+      const equipment = save[equipmentSlot];
+      let hatFound = false;
+
+      equipment.forEach((slots) => {
+        const length = slots.length;
+        for (let i = 0; i < length; i++) {
+          const eqName = slots[i];
+          if (eqName.indexOf("Hats") !== -1) {
+            hatIcons[v] = eqName + "_x1";
+            hatFound = true;
+            break;
+          }
+        }
+      });
+      if (!hatFound) {
+        hatIcons[v] = "head";
+      }
+    });
+
     // Fetch Gem-Shop flaggy upgrades
     this.flaggyShopUpgrades = JSON.parse(save["GemItemsPurchased"])[118];
     // Fetch the list of available cogs
     const cogRaw = JSON.parse(save["CogM"]);
     const cogIcons = JSON.parse(save["CogO"]).map(c=>{
       if(c === "Blank") { return c; }
-      if(c.startsWith("Player")) { return c; }
+      if(c.startsWith("Player")) { return hatIcons[c.substring(7)]; }
       if(c === "CogY") { return "Yang_Cog"; }
       const parsed=c.match(/^Cog([0123YZ])(.{2,3})$/);
       if(parsed[1] === "Z") {
@@ -205,6 +228,8 @@ class CogInventory {
     for (const cog of cogArray) {
       this.cogs[cog.key] = cog;
     }
+
+    document.getElementById("notify").style.display = "none";
   }
   
   clone() {

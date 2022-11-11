@@ -84,7 +84,7 @@ class BoardRenderer {
     const isVisible = (slot.row >= this._pageIndex * this._visibleRows && 
       slot.row < this._pageIndex * this._visibleRows + this._visibleRows);
 
-    console.log(slot.row, slot.column, isVisible);
+    // console.log(slot.row, slot.column, isVisible);
     if (!isVisible) {
       return;
     }
@@ -107,7 +107,7 @@ class BoardRenderer {
     // TODO: Move to css
     col.style.border = `1px solid ${border}`;
     col.style.borderBottom = `2px solid ${border}`;
-    col.style.backgroundImage = `url("${(!cog.blocked && "cog_bg.png") || "cog_blank.png"}")`;
+    col.style.backgroundImage = `url("assets/${(!cog.blocked && "cog_bg.png") || "cog_blank.png"}")`;
     col.style.backgroundPosition = "center";
     col.style.backgroundSize = "cover";
     if (col.classList.contains("toMove")) {
@@ -128,12 +128,13 @@ class BoardRenderer {
 
       if (cog.icon === "Blank") {
         div.innerHTML = "";
-        div.style.backgroundImage = `url("cog_blank.png")`;
-      } else if (cog.icon.startsWith("Player_")) {
+        div.style.backgroundImage = "";
+      } else if (cog.icon.startsWith("Equipment")) {
+        div.style.backgroundImage = `url("icons/hats/${cog.icon}.png")`;
         div.innerHTML = `<div style="word-break: break-all;font-size: 8px;line-height: 1.4;padding: 2px;">${cog.icon.substr(7)}` + "</div>";
       } else {
         div.innerHTML = "";
-        div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
+        div.style.backgroundImage = `url("icons/cogs/${cog.icon}.png")`;
       }
     }
   }
