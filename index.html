@@ -6,6 +6,7 @@
     <meta name="color-scheme" content="dark light" />
 
     <link rel="stylesheet" href="style.css" />
+    <script type="text/javascript" src="Solver.js"></script>
     <script type="text/javascript" src="BoardRenderer.js"></script>
     <script type="text/javascript" src="Paginator.js"></script>
     
@@ -79,12 +80,12 @@
       const COLUMNS = 12;
       const OPTIMIZABLE = ["buildRate", "expBonus", "flaggy"];
       const ICON_QUALITY_MAP = {
-          ["0"]: "Nooby",
-          ["1"]: "Decent",
-          ["2"]: "Superb",
-          ["3"]: "Ultimate",
-          ["Y"]: "Yang",
-          ["Z"]: "Yin"
+        ["0"]: "Nooby",
+        ["1"]: "Decent",
+        ["2"]: "Superb",
+        ["3"]: "Ultimate",
+        ["Y"]: "Yang",
+        ["Z"]: "Yin"
       };
       const ICON_TYPE_MAP = {
         ["A00"]: "Cog",
@@ -108,7 +109,7 @@
         ["co"]: "Column",
         ["cr"]: "Corner",
       };
-        const YIN_MAP = {
+      const YIN_MAP = {
         ["A00"]: "Yin_Top_Left_Cog",
         ["A01"]: "Yin_Top_Right_Cog",
         ["A02"]: "Yin_Bottom_Left_Cog",
@@ -181,6 +182,7 @@
 
       window.boardRenderer = new BoardRenderer(ROWS, COLUMNS, "board");
       window.spareRenderer = new BoardRenderer(30, 3, "spare", 5);
+      window.solver = new Solver();
 
       const sparePage = new Paginator("sparepage", window.spareRenderer._pageCount, 1);
       sparePage.addEventListener("change", (ev) => {
@@ -367,44 +369,6 @@
         return { cogs: c, board: b };
       }
       
-        f.removeUselesMoves = (board, cogs) => {
-        const goal = f.getScore(board);
-        const cogsToMove = Object.values(cogs)
-          .filter((c) => c.key !== c.initialKey);
-        // Check if move still changes something
-        for (let i = 0; i < cogsToMove.length; i++) {
-          const cog1 = cogsToMove[i];
-          const cog1Key = cog1.key;
-          const pos1 = cog1.position();
-          const cog2Key = cog1.initialKey;
-          const cog2 = cogs[cog2Key];
-          const pos2 = cog2.position();
-          if (pos1.location === "board") {
-            board[pos1.y][pos1.x] = cog2;
-          }
-          if (pos2.location === "board") {
-            board[pos2.y][pos2.x] = cog1;
-          }
-          const changed = f.getScore(board);
-          if (changed.buildRate === goal.buildRate
-            && changed.flaggy === goal.flaggy
-            && changed.expBonus === goal.expBonus) {
-            console.log(`Removing useless move ${cog1Key} to ${cog2Key}`);
-            cog1.key = cog2Key;
-            cogs[cog2Key] = cog1;
-            cog2.key = cog1Key;
-            cogs[cog1Key] = cog2;
-            continue;
-          }
-          if (pos1.location === "board") {
-            board[pos1.y][pos1.x] = cog1;
-          }
-          if (pos2.location === "board") {
-            board[pos2.y][pos2.x] = cog2;
-          }
-        }
-      }
-      
       f.printOptimalSteps = (board, cogs) => {
         document.getElementById("steps").innerHTML = "";
         const cogsToMove = Object.values(cogs).map(c=>{return {...c}})
@@ -562,121 +526,23 @@
         let lastYield = Date.now();
         await yield(); // Yield for DOM-Refresh
 
-        const shuffledStart = () => {
-          const state = f.cloneState(g.cogs, g.board);
-          state.score = f.getScore(state.board);
-          state.scoreSum = f.getScoreSum(state.score);
-          solutions.push(state);
-          const allKeys = Object.keys(state.cogs);
-          for (let i = 0; i < 500; i++) {
-            const cog1Key = allKeys[Math.floor(Math.random() * allKeys.length)];
-            const cog1 = state.cogs[cog1Key]
-            const pos1 = cog1.position();
-            const cog2Key = allKeys[Math.floor(Math.random() * allKeys.length)];
-            const cog2 = state.cogs[cog2Key];
-            const pos2 = cog2.position();
-            if (cog1.fixed || cog2.fixed || pos1.location === "build" || pos2.location === "build") continue;
-            if (pos1.location === "board") {
-              state.board[pos1.y][pos1.x] = cog2;
-            }
-            if (pos2.location === "board") {
-              state.board[pos2.y][pos2.x] = cog1;
-            }
-            cog1.key = cog2Key;
-            state.cogs[cog2Key] = cog1;
-            cog2.key = cog1Key;
-            state.cogs[cog1Key] = cog2;
-          }
-          return state;
-        }
-
         console.log("Starting");
 
-        let state = f.cloneState(g.cogs, g.board);
-        state.score = f.getScore(state.board);
-        state.scoreSum = f.getScoreSum(state.score);
+        let start = f.cloneState(g.cogs, g.board);
+        start.score = f.getScore(start.board);
+        start.scoreSum = f.getScoreSum(start.score);
 
-        const initBuildRate = state.score.buildRate;
-        const initExpBonus = state.score.expBonus;
-        const initFlaggy = state.score.flaggy;
-        const initScore = state.scoreSum;
-
-        document.getElementById("start").innerText = `Starting BuildRate: ${state.score.buildRate}, EXP: ${state.score.expBonus}, Flaggy: ${state.score.flaggy}, Sum: ${state.scoreSum}`;
-        const solutions = [state];
-        const allKeys = Object.keys(g.cogs);
-        const startTime = Date.now();
-        let counter = 0;
-        console.log("Trying to optimize");
-        while(Date.now() - startTime < solveTime) {
-          if(Date.now() - lastYield > 5000) {
-            // Prevent UI from freezing with very high solve times
-            await yield();
-            lastYield = Date.now();
-          }
-          counter++;
-          if (counter % 10000 === 0) {
-            f.verifyBoardIntegrity(state.board);
-            state = shuffledStart();
-          }
-          const cog1Key = allKeys[Math.floor(Math.random() * allKeys.length)];
-          const cog1 = state.cogs[cog1Key]
-          const pos1 = cog1.position();
-          const cog2Key = allKeys[Math.floor(Math.random() * allKeys.length)];
-          const cog2 = state.cogs[cog2Key];
-          const pos2 = cog2.position();
-          if (pos1.location !== "board" && pos2.location !== "board") continue;
-          if (cog1.fixed || cog2.fixed || pos1.location === "build" || pos2.location === "build") continue;
-          if (pos1.location === "board") {
-            state.board[pos1.y][pos1.x] = cog2;
-          }
-          if (pos2.location === "board") {
-            state.board[pos2.y][pos2.x] = cog1;
-          }
-          const scoreUpdate = f.getScore(state.board);
-          const scoreSumUpdate = f.getScoreSum(scoreUpdate);
-          if (scoreSumUpdate > state.scoreSum) {
-            state.score = scoreUpdate;
-            state.scoreSum = scoreSumUpdate;
-            
-            cog1.key = cog2Key;
-            state.cogs[cog2Key] = cog1;
-            cog2.key = cog1Key;
-            state.cogs[cog1Key] = cog2;
-          } else {
-            if (pos1.location === "board") {
-              state.board[pos1.y][pos1.x] = cog1;
-            }
-            if (pos2.location === "board") {
-              state.board[pos2.y][pos2.x] = cog2;
-            }
-          }
-        }
-        console.log(`Tried ${counter} switches`);
-        console.log(`Made ${solutions.length} different attempts with final scores: ${solutions.map(s=>s.scoreSum)}`);
-        let best = solutions.reduce((a, b) => a.scoreSum >= b.scoreSum ? a : b);
-        const bestIndex = solutions.indexOf(best);
-        if (g.best === null || g.best.scoreSum < best.scoreSum) {
-          console.log("Best solution was number", bestIndex);
-          g.best = best;
-        } else {
-          best = g.best;
-        }
-        if (best.scoreSum !== f.getScoreSum(f.getScore(best.board))) {
-          debugger;
-        }
-        f.removeUselesMoves(best.board, best.cogs);
-        f.verifyBoardIntegrity(best.board);
-        if (best.scoreSum !== f.getScoreSum(f.getScore(best.board))) {
-          debugger;
-        }
+        document.getElementById("start").innerText = `Starting BuildRate: ${start.score.buildRate}, EXP: ${start.score.expBonus}, Flaggy: ${start.score.flaggy}, Sum: ${start.scoreSum}`;
+        const best = await solver.solve(solveTime);
         document.getElementById("end").innerText = `Final BuildRate: ${best.score.buildRate}, EXP: ${best.score.expBonus}, Flaggy: ${best.score.flaggy}, Sum: ${best.scoreSum}`;
         
-        document.getElementById("buildrate").innerText = `${mmoifyNumber(best.score.buildRate - initBuildRate)}/HR`;
-        document.getElementById("xpbonus").innerText = `${mmoifyNumber(best.score.expBonus - initExpBonus)}%`;
-        document.getElementById("flaggyrate").innerText = `${mmoifyNumber(best.score.flaggy - initFlaggy)}/HR`;
+        document.getElementById("buildrate").innerText = `${mmoifyNumber(best.score.buildRate - start.score.buildRate)}/HR`;
+        document.getElementById("xpbonus").innerText = `${mmoifyNumber(best.score.expBonus - start.score.expBonus)}%`;
+        document.getElementById("flaggyrate").innerText = `${mmoifyNumber(best.score.flaggy - start.score.flaggy)}/HR`;
         
         f.printOptimalSteps(best.board, best.cogs);
         // f.printBoard(best.board);
+        // TODO Paddy: This opens the original board, not the board after solving
         openCogTab();
         document.getElementById("solve").innerText = "Solve";
       };
