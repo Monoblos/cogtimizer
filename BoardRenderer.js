@@ -136,6 +136,10 @@ class BoardRenderer {
         div.innerHTML = "";
         div.style.backgroundImage = `url("icons/cogs/${cog.icon}.png")`;
       }
+    } else {
+      if (cog.isFlag) {
+        col.style.backgroundImage = `url("icons/cogs/flag.png")`;
+      }
     }
   }
 
