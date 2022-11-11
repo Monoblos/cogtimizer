@@ -194,7 +194,7 @@
         for (let i = 0; i < cogsToMove.length; i++) {
           const cog = cogsToMove[i];
           if (Number.parseInt(cog.key) < 108 || Number.parseInt(cog.initialKey) < 108) continue;
-          console.log(`Removing useless move ${cog.key} to ${cog.initialKey}`);
+          console.log(`Removing useless spare move ${cog.key} to ${cog.initialKey}`);
           const targetCog = cogsToMove.find(c => c.key === cog.initialKey);
           targetCog.key = cog.key;
           cogsToMove.splice(i, 1);
@@ -203,7 +203,7 @@
         // Easy switches
         for (const cog of cogsToMove) {
           const targetCog = interimCogs[cog.key];
-          if (!targetCog || targetCog.initialKey !== cog.key) {
+          if (!targetCog || targetCog.key !== cog.initialKey || cog.key !== targetCog.initialKey) {
             interimCogs[cog.initialKey] = cog;
             continue;
           }
