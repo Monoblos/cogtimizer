@@ -111,7 +111,7 @@ class FakeBoard {
       for (let j = 0; j < INV_COLUMNS; j++) {
         const key = i * INV_COLUMNS + j;
         Object.defineProperty(columnProxy, j, {
-          get: () => this.inventory.cogs[key] || this.inventory.slots[key]
+          get: () => this.inventory.get(key)
         });
       }
       Object.defineProperty(this, i, {
@@ -126,9 +126,18 @@ class CogInventory {
     this.cogs = cogs;
     this.slots = slots;
     this.flaggyShopUpgrades = 0;
+    this.availableSlotKeys = [];
     this._score = null;
     // Saved for performance
     this._board = new FakeBoard(this);
+  }
+  
+  get cogKeys() {
+    return Object.keys(this.cogs);
+  }
+  
+  get(key) {
+    return this.cogs[key] || this.slots[key]
   }
   
   static _saveGet(arr, ...indexes) {
@@ -140,6 +149,8 @@ class CogInventory {
   }
   
   load(save) {
+    this.availableSlotKeys = [];
+    this._score = null;
     console.log("Loading");
     // Fetch Gem-Shop flaggy upgrades
     this.flaggyShopUpgrades = JSON.parse(save["GemItemsPurchased"])[118];
@@ -186,18 +197,13 @@ class CogInventory {
     this.slots = {};
     for (const slot of slots) {
       this.slots[slot.key] = slot;
+      if (!slot.fixed) {
+        this.availableSlotKeys.push(slot.key);
+      }
     }
     this.cogs = {};
     for (const cog of cogArray) {
       this.cogs[cog.key] = cog;
-    }
-  }
-  
-  setWeights(buildRate, expBonus, flaggy) {
-    this.weights = {
-      buildRate: buildRate,
-      expBonus: expBonus,
-      flaggy: flaggy
     }
   }
   
@@ -212,7 +218,7 @@ class CogInventory {
     }
     const res = new CogInventory(c, s);
     res.flaggyShopUpgrades = this.flaggyShopUpgrades;
-    res.setWeights(this.weights.buildRate, this.weights.expBonus, this.weights.flaggy);
+    res.availableSlotKeys = [...this.availableSlotKeys];
     return res;
   }
   
@@ -273,7 +279,7 @@ class CogInventory {
           case "around":
             boosted.push([i-2, j],[i-1, j-1],[i-1, j],[i-1, j+1],[i, j-2],[i, j-1],[i, j+1],[i, j+2],[i+1, j-1],[i+1, j],[i+1, j+1],[i+2, j]);
             break;
-          case "excogia":
+          case "everything":
             for (let k = 0; k < INV_ROWS; k++) {
               for (let l = 0; l < INV_COLUMNS; l++) {
                 if(i === k && j === l) continue;
@@ -285,7 +291,7 @@ class CogInventory {
             break;
         }
         for (const boostCord of boosted) {
-          const bonus = CogInventory._saveGet(bonusGrid, boostCord);
+          const bonus = CogInventory._saveGet(bonusGrid, ...boostCord);
           if (!bonus) continue;
           bonus.buildRate += entry.buildRadiusBoost  || 0;
           bonus.expBonus  += entry.expRadiusBoost    || 0;
@@ -306,7 +312,7 @@ class CogInventory {
         const b = (bonus.buildRate || 0) / 100;
         result.buildRate += Math.ceil((entry.buildRate || 0) * b);
         // TODO: Apply exp bonus for players
-        const e = 1; // (bonus.expBonus || 0) / 100;
+        const e = 0; // (bonus.expBonus || 0) / 100;
         result.expBonus += Math.ceil((entry.expBonus || 0) * e);
         const f = (bonus.flaggy || 0) / 100;
         result.flaggy += Math.ceil((entry.flaggy || 0) * f);
@@ -314,14 +320,6 @@ class CogInventory {
     }
     result.flaggy = Math.floor(result.flaggy * (1 + this.flaggyShopUpgrades * 0.5));
     return this._score = result;
-  }
-  
-  get scoreSum() {
-    let res = 0;
-    res += this.score.buildRate * this.weights.buildRate;
-    res += this.score.expBonus * this.weights.expBonus;
-    res += this.score.flaggy * this.weights.flaggy;
-    return res;
   }
   
   move(pos1, pos2) {

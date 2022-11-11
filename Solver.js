@@ -3,8 +3,24 @@ function yield() {
 }
 
 class Solver {
-  constructor() {
-    
+  constructor(weights={}) {
+    this.setWeights(weights.buildRate, weights.expBonus, weights.flaggy)
+  }
+  
+  setWeights(buildRate, expBonus, flaggy) {
+    this.weights = {
+      buildRate: buildRate,
+      expBonus: expBonus,
+      flaggy: flaggy
+    }
+  }
+  
+  getScoreSum(score) {
+    let res = 0;
+    res += score.buildRate * this.weights.buildRate;
+    res += score.expBonus * this.weights.expBonus;
+    res += score.flaggy * this.weights.flaggy;
+    return res;
   }
   
   static _yield() {
@@ -14,15 +30,14 @@ class Solver {
   /**
    * solveTime: Number - Time in ms how long the solver should run
    */
-  async solve(solveTime) {
+  async solve(inventory, solveTime=1000) {
     let lastYield = Date.now();
-    let state = f.cloneState(g.cogs, g.board);
-    state.score = f.getScore(state.board);
-    state.scoreSum = f.getScoreSum(state.score);
+    let state = inventory.clone();
     const solutions = [state];
-    const allKeys = Object.keys(g.cogs);
     const startTime = Date.now();
+    const allSlots = inventory.availableSlotKeys;
     let counter = 0;
+    let currentScore = this.getScoreSum(state.score);
 
     console.log("Trying to optimize");
     while(Date.now() - startTime < solveTime) {
@@ -33,95 +48,60 @@ class Solver {
       }
       counter++;
       if (counter % 10000 === 0) {
-        f.verifyBoardIntegrity(state.board);
-        state = f.cloneState(g.cogs, g.board);
-        state.score = f.getScore(state.board);
-        state.scoreSum = f.getScoreSum(state.score);
+        state = inventory.clone();
         this.shuffle(state);
+        currentScore = this.getScoreSum(state.score);
         solutions.push(state);
       }
-      const cog1Key = allKeys[Math.floor(Math.random() * allKeys.length)];
-      const cog1 = state.cogs[cog1Key]
-      const pos1 = cog1.position();
-      const cog2Key = allKeys[Math.floor(Math.random() * allKeys.length)];
-      const cog2 = state.cogs[cog2Key];
-      const pos2 = cog2.position();
-      if (pos1.location !== "board" && pos2.location !== "board") continue;
-      if (cog1.fixed || cog2.fixed || pos1.location === "build" || pos2.location === "build") continue;
-      if (pos1.location === "board") {
-        state.board[pos1.y][pos1.x] = cog2;
-      }
-      if (pos2.location === "board") {
-        state.board[pos2.y][pos2.x] = cog1;
-      }
-      const scoreUpdate = f.getScore(state.board);
-      const scoreSumUpdate = f.getScoreSum(scoreUpdate);
-      if (scoreSumUpdate > state.scoreSum) {
-        state.score = scoreUpdate;
-        state.scoreSum = scoreSumUpdate;
-        
-        cog1.key = cog2Key;
-        state.cogs[cog2Key] = cog1;
-        cog2.key = cog1Key;
-        state.cogs[cog1Key] = cog2;
+      const slotKey = allSlots[Math.floor(Math.random() * allSlots.length)];
+      // Moving a cog to an empty space changes the list of cog keys, so we need to re-fetch this
+      const allKeys = state.cogKeys;
+      const cogKey = allKeys[Math.floor(Math.random() * allKeys.length)];
+      const slot = state.get(slotKey);
+      const cog = state.get(cogKey);
+
+      if (slot.fixed || cog.fixed || cog.position().location === "build") continue;
+      state.move(slotKey, cogKey);
+      const scoreSumUpdate = this.getScoreSum(state.score);
+      if (scoreSumUpdate > currentScore) {
+        currentScore = scoreSumUpdate;
       } else {
-        if (pos1.location === "board") {
-          state.board[pos1.y][pos1.x] = cog1;
-        }
-        if (pos2.location === "board") {
-          state.board[pos2.y][pos2.x] = cog2;
-        }
+        state.move(slotKey, cogKey);
       }
     }
     console.log(`Tried ${counter} switches`);
-    console.log(`Made ${solutions.length} different attempts with final scores: ${solutions.map(s=>s.scoreSum)}`);
-    let best = solutions.reduce((a, b) => a.scoreSum >= b.scoreSum ? a : b);
-    const bestIndex = solutions.indexOf(best);
-    if (g.best === null || g.best.scoreSum < best.scoreSum) {
+    const scores = solutions.map((s)=>this.getScoreSum(s.score));
+    console.log(`Made ${solutions.length} different attempts with final scores: ${scores}`);
+    const bestIndex = scores.indexOf(scores.reduce((a,b)=>Math.max(a,b)));
+    let best = solutions[bestIndex];
+    if (g.best === null || this.getScoreSum(g.best.score) < scores[bestIndex]) {
       console.log("Best solution was number", bestIndex);
       g.best = best;
     } else {
       best = g.best;
     }
-    if (best.scoreSum !== f.getScoreSum(f.getScore(best.board))) {
-      debugger;
-      throw new Error("Invalid solution");
-    }
     this.removeUselesMoves(best);
-    f.verifyBoardIntegrity(best.board);
-    if (best.scoreSum !== f.getScoreSum(f.getScore(best.board))) {
-      debugger;
-      throw new Error("Invalid solution");
-    }
     return best;
   }
   
-  shuffle(state, n = 500) {
-    const allKeys = Object.keys(state.cogs);
+  shuffle(inventory, n = 500) {
+    const allSlots = inventory.availableSlotKeys;
     for (let i = 0; i < n; i++) {
-      const cog1Key = allKeys[Math.floor(Math.random() * allKeys.length)];
-      const cog1 = state.cogs[cog1Key]
-      const pos1 = cog1.position();
-      const cog2Key = allKeys[Math.floor(Math.random() * allKeys.length)];
-      const cog2 = state.cogs[cog2Key];
-      const pos2 = cog2.position();
-      if (cog1.fixed || cog2.fixed || pos1.location === "build" || pos2.location === "build") continue;
-      if (pos1.location === "board") {
-        state.board[pos1.y][pos1.x] = cog2;
-      }
-      if (pos2.location === "board") {
-        state.board[pos2.y][pos2.x] = cog1;
-      }
-      cog1.key = cog2Key;
-      state.cogs[cog2Key] = cog1;
-      cog2.key = cog1Key;
-      state.cogs[cog1Key] = cog2;
+      const slotKey = allSlots[Math.floor(Math.random() * allSlots.length)];
+      // Moving a cog to an empty space changes the list of cog keys, so we need to re-fetch this
+      const allKeys = inventory.cogKeys;
+      const cogKey = allKeys[Math.floor(Math.random() * allKeys.length)];
+      const slot = inventory.get(slotKey);
+      const cog = inventory.get(cogKey);
+
+      if (slot.fixed || cog.fixed || cog.position().location === "build") continue;
+      inventory.move(slotKey, cogKey);
     }
   }
   
-  removeUselesMoves(state) {
-    const goal = f.getScore(state.board);
-    const cogsToMove = Object.values(state.cogs)
+  removeUselesMoves(inventory) {
+    const goal = inventory.score
+    const cogsToMove = Object.values(inventory.cogs)
       .filter((c) => c.key !== c.initialKey);
     // Check if move still changes something
     for (let i = 0; i < cogsToMove.length; i++) {
@@ -129,31 +109,17 @@ class Solver {
       const cog1Key = cog1.key;
       const pos1 = cog1.position();
       const cog2Key = cog1.initialKey;
-      const cog2 = state.cogs[cog2Key];
+      const cog2 = inventory.cogs[cog2Key];
       const pos2 = cog2.position();
-      if (pos1.location === "board") {
-        state.board[pos1.y][pos1.x] = cog2;
-      }
-      if (pos2.location === "board") {
-        state.board[pos2.y][pos2.x] = cog1;
-      }
-      const changed = f.getScore(state.board);
+      inventory.move(cog1Key, cog2Key);
+      const changed = inventory.score
       if (changed.buildRate === goal.buildRate
         && changed.flaggy === goal.flaggy
         && changed.expBonus === goal.expBonus) {
-        console.log(`Removing useless move ${cog1Key} to ${cog2Key}`);
-        cog1.key = cog2Key;
-        state.cogs[cog2Key] = cog1;
-        cog2.key = cog1Key;
-        state.cogs[cog1Key] = cog2;
+        console.log(`Removed useless move ${cog1Key} to ${cog2Key}`);
         continue;
       }
-      if (pos1.location === "board") {
-        state.board[pos1.y][pos1.x] = cog1;
-      }
-      if (pos2.location === "board") {
-        state.board[pos2.y][pos2.x] = cog2;
-      }
+      inventory.move(cog1Key, cog2Key);
     }
   }
 }
