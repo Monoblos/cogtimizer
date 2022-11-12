@@ -42,7 +42,7 @@ class Cog {
   constructor(initialValues = {}) {
     this._key = initialValues.key;
     this.icon = initialValues.icon;
-    this.initialKey = initialValues.initialKey || initialValues.key;
+    this.initialKey = initialValues.initialKey !== undefined ? initialValues.initialKey : initialValues.key;
     this.buildRate = initialValues.buildRate;
     this.isPlayer = initialValues.isPlayer;
     this.isFlag = initialValues.isFlag;
@@ -53,7 +53,7 @@ class Cog {
     this.expRadiusBoost = initialValues.expRadiusBoost;
     this.flaggyRadiusBoost = initialValues.flaggyRadiusBoost;
     this.boostRadius = initialValues.boostRadius;
-    this.flagSpeed = initialValues.flagSpeed;
+    this.flagBoost = initialValues.flagBoost;
     this.nothing = initialValues.nothing; // Description: +% Nothing! LOL
     this.fixed = initialValues.fixed;
     this.blocked = initialValues.blocked;
@@ -125,6 +125,7 @@ class CogInventory {
   constructor(cogs={}, slots={}) {
     this.cogs = cogs;
     this.slots = slots;
+    this.flagPose = [];
     this.flaggyShopUpgrades = 0;
     this.availableSlotKeys = [];
     this._score = null;
@@ -206,16 +207,16 @@ class CogInventory {
         expRadiusBoost: c.f,
         flaggyRadiusBoost: c.g,
         boostRadius: c.h,
-        flagSpeed: c.j,
+        flagBoost: c.j,
         nothing: c.k,
-        fixed: c.h === "everything" || c.j > 0,
+        fixed: c.h === "everything",
         blocked: false
       });
     });
     // Get the available board
-    const flagPose = JSON.parse(save["FlagP"]).slice(0, 4); // Only first 4 are used
+    this.flagPose = JSON.parse(save["FlagP"]).filter(v=>v>=0); // Only first 4 are used
     const slots = JSON.parse(save["FlagU"]).map((n, i) => {
-      if (n > 0 && flagPose.includes(i)) return new Cog({ key: i, fixed: true, blocked: true, isFlag: true });
+      if (n > 0 && this.flagPose.includes(i)) return new Cog({ key: i, fixed: true, blocked: true, isFlag: true });
       if (n !== -11) return new Cog({ key: i, fixed: true, blocked: true });
       return new Cog({ key: i });
     });
@@ -245,6 +246,7 @@ class CogInventory {
       s[k] = new Cog(v);
     }
     const res = new CogInventory(c, s);
+    res.flagPose = [...this.flagPose];
     res.flaggyShopUpgrades = this.flaggyShopUpgrades;
     res.availableSlotKeys = [...this.availableSlotKeys];
     return res;
@@ -260,7 +262,9 @@ class CogInventory {
     const result = {
       buildRate: 0,
       expBonus: 0,
-      flaggy: 0
+      flaggy: 0,
+      expBoost: 0,
+      flagBoost: 0
     };
 
     const board = this.board;
@@ -322,8 +326,9 @@ class CogInventory {
         const bonus = CogInventory._saveGet(bonusGrid, ...boostCord);
         if (!bonus) continue;
         bonus.buildRate += entry.buildRadiusBoost  || 0;
-        bonus.expBonus  += entry.expRadiusBoost    || 0;
         bonus.flaggy    += entry.flaggyRadiusBoost || 0;
+        bonus.expBoost  += entry.expRadiusBoost    || 0;
+        bonus.flagBoost += entry.flagBoost         || 0;
       }
     }
  
@@ -337,11 +342,17 @@ class CogInventory {
       const bonus = bonusGrid[pos.y][pos.x];
       const b = (bonus.buildRate || 0) / 100;
       result.buildRate += Math.ceil((entry.buildRate || 0) * b);
-      // TODO: Apply exp bonus for players
-      const e = 0; // (bonus.expBonus || 0) / 100;
-      result.expBonus += Math.ceil((entry.expBonus || 0) * e);
+      if (entry.isPlayer) {
+        result.expBoost += bonus.expBoost || 0;
+      }
       const f = (bonus.flaggy || 0) / 100;
       result.flaggy += Math.ceil((entry.flaggy || 0) * f);
+    }
+    for (let key of this.flagPose) {
+      const entry = this.get(key);
+      const pos = entry.position();
+      const bonus = bonusGrid[pos.y][pos.x];
+      result.flagBoost += bonus.flagBoost || 0;
     }
     result.flaggy = Math.floor(result.flaggy * (1 + this.flaggyShopUpgrades * 0.5));
     return this._score = result;
@@ -352,6 +363,10 @@ class CogInventory {
     if (Array.isArray(pos1)) {
       pos1 = pos1[0] * INV_COLUMNS + pos1[1];
       pos2 = pos2[0] * INV_COLUMNS + pos2[1];
+    }
+    if (pos1 instanceof Object) {
+      pos1 = pos1.y * INV_COLUMNS + pos1.x;
+      pos2 = pos2.y * INV_COLUMNS + pos2.x;
     }
     const temp = this.cogs[pos2];
     this.cogs[pos2] = this.cogs[pos1];

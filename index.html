@@ -52,7 +52,7 @@
         </p>
         <p>
           <label for="solveTime">Solve times (ms)</label>
-          <input type="number" id="solveTime" value="1000" style="width:10ch"></input>
+          <input type="number" id="solveTime" value="2500" style="width:10ch"></input>
         </p>
       </div>
       <div id="result">
@@ -112,7 +112,7 @@
       window.f = {};
 
       window.boardRenderer = new BoardRenderer(ROWS, COLUMNS, "board");
-      window.spareRenderer = new BoardRenderer(30, 3, "spare", 5);
+      window.spareRenderer = new BoardRenderer(40, 3, "spare", 5);
       window.solver = new Solver();
       window.cogInvetory = new CogInventory();
 
@@ -151,10 +151,11 @@
 
       let moveIndex = 0;
       //TODO Paddy: Kann so schlecht resettet werden (und wird aktuell nicht genutzt)
-      const moves = [];
+      let moves = [];
       
       f.printMove = (board, cog1, cog2, pos1, pos2) => {
-        moves.push({pos1, pos2});
+        const prevMoves = [...moves];
+        moves.push({pos1: cog1.key, pos2: cog2.key});
         const toAdd = createElem("p");
         toAdd.innerHTML = `Switch ${pos1.location} \
         [${pos1.x + 1}|${pos1.y + 1}] \
@@ -163,6 +164,11 @@
         [${pos2.x + 1}|${pos2.y + 1}] \
         (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0}) <span style="background-image:url('icons/${cog2.icon}.png')"></span>`;
         toAdd.onclick = () => {
+          const clone = cogInvetory.clone();
+          for (const m of prevMoves) {
+            clone.move(m.pos1, m.pos2);
+          }
+          f.printBoard(clone.board);
           window.boardRenderer.move(pos1, pos2);
           window.spareRenderer.move(pos1, pos2);
         }
@@ -186,29 +192,13 @@
       }
       
       f.printOptimalSteps = (board, cogs) => {
+        moves = [];
         document.getElementById("steps").innerHTML = "";
         const cogsToMove = Object.values(cogs).map(c=>{return new Cog(c)})
           .filter((c) => c.key !== c.initialKey);
         const interimCogs = {};
-        // Remove spare movements
-        for (let i = 0; i < cogsToMove.length; i++) {
-          const cog = cogsToMove[i];
-          if (Number.parseInt(cog.key) < 108 || Number.parseInt(cog.initialKey) < 108) continue;
-          console.log(`Removing useless spare move ${cog.key} to ${cog.initialKey}`);
-          const targetCog = cogsToMove.find(c => c.key === cog.initialKey);
-          targetCog.key = cog.key;
-          cogsToMove.splice(i, 1);
-          i--;
-        }
-        // Easy switches
         for (const cog of cogsToMove) {
-          const targetCog = interimCogs[cog.key];
-          if (!targetCog || targetCog.key !== cog.initialKey || cog.key !== targetCog.initialKey) {
-            interimCogs[cog.initialKey] = cog;
-            continue;
-          }
-          f.printMove(board, cog, targetCog, cog.position(Number.parseInt(cog.initialKey)), targetCog.position(Number.parseInt(cog.key)));
-          delete interimCogs[cog.key];
+          interimCogs[cog.initialKey] = cog;
         }
         // Multi-step movements
         let tuple;
@@ -299,7 +289,7 @@
       });
       
       document.getElementById("solve").onclick = async () => {
-        const solveTime = getInput("solveTime") || 1000;
+        const solveTime = getInput("solveTime") || 2500;
         document.getElementById("solve").innerText = "Optimizing...";
         document.getElementById("steps").innerHTML = "";
         let lastYield = Date.now();
