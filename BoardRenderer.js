@@ -66,6 +66,13 @@ class BoardRenderer {
     }
   }
 
+  getPage(coord) {
+    if (coord.location === this._type) {
+      return Math.floor(coord.y / this._visibleRows);
+    }
+    return -1;
+  }
+
   _getIndex(row, column) {
     if (row > this._rows) {
       throw new Error("Tried to access row outside the board");

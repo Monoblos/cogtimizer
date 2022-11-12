@@ -16,45 +16,39 @@
     <title>Cogtimizer</title>
   </head>
   <body>
-    <div class="inputarea">
-      <div>Enter config json or username</div>
-      <textarea type="textarea" id="input" rows="10" cols="100"></textarea>
-      <div>
-        <!-- <button id="fetch" style="max-width: 15ch;">Fetch</button> -->
-        <button id="load" style="max-width: 15ch;">Load</button>
-        <button id="solve" style="max-width: 15ch;" disabled>Solve</button>
-      </div>
-    </div>
     <div class="menucontainer">
       <ul class="menu">
-        <li id="settingsbtn" class="active">Loader</li>
-        <li id="cogbtn">Cogs</li>
+        <li id="loaderbtn" class="active"><div><div><div>Loader</div></div></div></li>
+        <li id="cogbtn"><div><div><div>Cogs</div></div></div></li>
       </ul>
+      <div class="options">
+        <button id="settingsbtn">
+          <div></div>
+          <div>
+            Settings
+            <div class="checkbox"></div>
+          </div>
+          <div></div>
+        </button>
+        <button id="solve" >
+          <div></div>
+          <div id="solvetext">Solve</div>
+          <div></div>
+        </button>
+      </div>
+      <div class="spacer"></div>
       <div class="crow"></div>
     </div>
     <div class="content">
-      <div id="settings">
-        <p>
-          <label for="flaggyShop">Gem Shop Flaggy upgrades</label>
-          <input type="number" id="flaggyShop" value="0" style="width:6ch" disabled=true></input>
-        </p>
-        <p>
-          <label for="buildRate">Build rate score weight</label>
-          <input type="number" id="buildRate" value="2" style="width:6ch"></input>
-        </p>
-        <p>
-          <label for="expBonus">EXP Bonus score weight</label>
-          <input type="number" id="expBonus" value="50" style="width:6ch"></input>
-        </p>
-        <p>
-          <label for="flaggy">Flaggy rate score weight</label>
-          <input type="number" id="flaggy" value="5" style="width:6ch"></input>
-        </p>
-        <p>
-          <label for="solveTime">Solve times (ms)</label>
-          <input type="number" id="solveTime" value="1000" style="width:10ch"></input>
-        </p>
+      <div id="loader">
+      <div class="inputarea">
+        <div>Enter config json or username</div>
+        <textarea type="textarea" id="input" rows="10" cols="100"></textarea>
+        <div>
+          <button id="load" style="max-width: 15ch;">Load</button>
+        </div>
       </div>
+    </div>
       <div id="result">
         <div id="notify">
           <span>Please</span>
@@ -80,7 +74,29 @@
             </span>
           </div>
         </div>
-        <div class="border"></div>
+        <div class="border" id="border"></div>
+        <div id="settings" style="display: none;">
+          <p>
+            <label for="flaggyShop">Gem Shop Flaggy upgrades</label><br />
+            <input type="number" id="flaggyShop" value="0" style="width:6ch" disabled=true></input>
+          </p>
+          <p>
+            <label for="buildRate">Build rate score weight</label><br />
+            <input type="number" id="buildRate" value="2" style="width:6ch"></input>
+          </p>
+          <p>
+            <label for="expBonus">EXP Bonus score weight</label><br />
+            <input type="number" id="expBonus" value="50" style="width:6ch"></input>
+          </p>
+          <p>
+            <label for="flaggy">Flaggy rate score weight</label><br />
+            <input type="number" id="flaggy" value="5" style="width:6ch"></input>
+          </p>
+          <p>
+            <label for="solveTime">Solve times (ms)</label><br />
+            <input type="number" id="solveTime" value="1000" style="width:10ch"></input>
+          </p>
+        </div>
         <div id="currentBoard">
         </div>
         <div id="steps"></div>
@@ -116,8 +132,8 @@
       window.solver = new Solver();
       window.cogInvetory = new CogInventory();
 
-      const sparePage = new Paginator("sparepage", window.spareRenderer._pageCount, 1);
-      sparePage.addEventListener("change", (ev) => {
+      window.sparePage = new Paginator("sparepage", window.spareRenderer._pageCount, 1);
+      window.sparePage.addEventListener("change", (ev) => {
         window.spareRenderer.showPage(ev.page);
       });
 
@@ -136,6 +152,23 @@
       const spareParent = spareElem.parentNode;
       spareParent.insertBefore(window.spareRenderer.createHTMLElement(), spareElem);
       spareParent.removeChild(spareElem);
+
+      const settingsBtn = document.getElementById("settingsbtn");
+      const slider = settingsBtn.childNodes[3].childNodes[1];
+      const settingsPage = document.getElementById("settings");
+      const borderElem = document.getElementById("border");
+      settingsBtn.addEventListener("click", () => {
+        const active = slider.classList.contains("active");
+        if (active) {
+          slider.classList.remove("active");
+          settingsPage.style.display = "none";
+        } else {
+          slider.classList.add("active");
+          settingsPage.style.display = "";
+          settingsPage.style.left = borderElem.offsetLeft + "px";
+          settingsPage.style.height = borderElem.offsetHeight + "px";
+        }
+      })
       
       f.verifyBoardIntegrity = (board) => {
         for (let y = 0; y < board.length; y++) {
@@ -158,12 +191,24 @@
         const toAdd = createElem("p");
         toAdd.innerHTML = `Switch ${pos1.location} \
         [${pos1.x + 1}|${pos1.y + 1}] \
-        (${cog1.buildRate || 0}:${cog1.expBonus || 0}:${cog1.flaggy || 0}) <span style="background-image:url('icons/${cog1.icon}.png')"></span> with \
+        (${cog1.buildRate || 0}:${cog1.expBonus || 0}:${cog1.flaggy || 0}) <span style="background-image:url('icons/cogs/${cog1.icon}.png')"></span> with \
         ${pos2.location} \
         [${pos2.x + 1}|${pos2.y + 1}] \
-        (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0}) <span style="background-image:url('icons/${cog2.icon}.png')"></span>`;
+        (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0}) <span style="background-image:url('icons/cogs/${cog2.icon}.png')"></span>`;
         toAdd.onclick = () => {
           window.boardRenderer.move(pos1, pos2);
+
+          if (pos1.location == "spare" || pos2.location == "spare") {
+            let pos = pos1;
+            if (pos2.location == "spare") {
+              pos = pos2;
+            }
+            const page = window.spareRenderer.getPage(pos);
+            if (page != -1) {
+              sparePage.goto(page);
+            }
+          }
+
           window.spareRenderer.move(pos1, pos2);
         }
         document.getElementById("steps").appendChild(toAdd);
@@ -246,7 +291,6 @@
         console.log("Loading");
         // Fetch Gem-Shop flaggy upgrades
         document.getElementById("flaggyShop").value = cogInvetory.flaggyShopUpgrades;
-        window.spareRenderer.showPage(0);
         sparePage.goto(0);
         for (let i = 108; i < 200; i++) {
           if (!cogInvetory.cogs[i]) continue;
@@ -300,7 +344,7 @@
       
       document.getElementById("solve").onclick = async () => {
         const solveTime = getInput("solveTime") || 1000;
-        document.getElementById("solve").innerText = "Optimizing...";
+        document.getElementById("solvetext").innerText = "Optimizing...";
         document.getElementById("steps").innerHTML = "";
         let lastYield = Date.now();
         await yield(); // Yield for DOM-Refresh
@@ -322,27 +366,27 @@
         // f.printBoard(best.board);
         // TODO Paddy: This opens the original board, not the board after solving
         openCogTab();
-        document.getElementById("solve").innerText = "Solve";
+        document.getElementById("solvetext").innerText = "Solve";
       };
     
       function openCogTab() {
-        document.getElementById("settings").style.display = "none";
+        document.getElementById("loader").style.display = "none";
         document.getElementById("result").style.display = "inherit";
 
-        document.getElementById("settingsbtn").className = "";
+        document.getElementById("loaderbtn").className = "";
         document.getElementById("cogbtn").className = "active";
       }
 
-      function openSettingsTab() {
-        document.getElementById("settings").style.display = "inherit";
+      function openLoaderTab() {
+        document.getElementById("loader").style.display = "inherit";
         document.getElementById("result").style.display = "none";
 
-        document.getElementById("settingsbtn").className = "active";
+        document.getElementById("loaderbtn").className = "active";
         document.getElementById("cogbtn").className = "";
       }
 
-      document.getElementById("settingsbtn").addEventListener("click", () => {
-        openSettingsTab();
+      document.getElementById("loaderbtn").addEventListener("click", () => {
+        openLoaderTab();
       });
       document.getElementById("cogbtn").addEventListener("click", () => {
         openCogTab();

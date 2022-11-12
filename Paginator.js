@@ -63,7 +63,7 @@ class Paginator extends EventTarget {
         }
     }
 
-    prev() {
+    prev(ev) {
         if (this.pageIndex > 0) {
             const event = new PageEvent("change", this.pageIndex - 1, "prev");
             if (this.dispatchEvent(event)) {
@@ -71,9 +71,11 @@ class Paginator extends EventTarget {
                 this._updatePage();
             }
         }
+        ev.preventDefault();
+        return false;
     }
 
-    next() {
+    next(ev) {
         if (this.pageIndex < this.pageCount - 1) {
             const event = new PageEvent("change", this.pageIndex + 1, "next");
             if (this.dispatchEvent(event)) {
@@ -81,5 +83,7 @@ class Paginator extends EventTarget {
                 this._updatePage();
             }
         }
+        ev.preventDefault();
+        return false;
     }
 }
