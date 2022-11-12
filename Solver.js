@@ -18,8 +18,8 @@ class Solver {
   getScoreSum(score) {
     let res = 0;
     res += score.buildRate * this.weights.buildRate;
-    res += score.expBonus * this.weights.expBonus * (score.expBoost / 10); // For now we just assume 10 players...
-    res += score.flaggy * this.weights.flaggy * (score.flagBoost / 4);
+    res += score.expBonus * this.weights.expBonus * (score.expBoost + 10) / 10; // For now we just assume 10 players...
+    res += score.flaggy * this.weights.flaggy * (score.flagBoost + 4) / 4;
     return res;
   }
   
