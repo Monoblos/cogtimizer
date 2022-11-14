@@ -203,10 +203,10 @@
 
         toAdd.innerHTML = `Switch ${pos1.location} \
         [${pos1.x + 1}|${pos1.y + 1}] \
-        (${cog1.buildRate || 0}:${cog1.expBonus || 0}:${cog1.flaggy || 0}) <span style="background-image:url('icons/cogs/${cog1.icon}.png')"></span> with \
+        (${cog1.buildRate || 0}:${cog1.expBonus || 0}:${cog1.flaggy || 0}) <span style="background-image:url('icons/${cog1.icon}.png')"></span> with \
         ${pos2.location} \
         [${pos2.x + 1}|${pos2.y + 1}] \
-        (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0}) <span style="background-image:url('icons/cogs/${cog2.icon}.png')"></span>`;
+        (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0}) <span style="background-image:url('icons/${cog2.icon}.png')"></span>`;
 
         toAdd.onclick = () => {
           stepsPage.goto(stepNumber);
@@ -230,7 +230,7 @@
         let tuple;
         while (tuple = Object.entries(interimCogs)[0]) {
           const [key, cog] = tuple;
-          const targetCog = interimCogs[cog.key];
+          const targetCog = interimCogs[cog.key] || { icon: "Blank", key, position: cog.position.bind(cog) };
           if (targetCog === cog) {
             delete interimCogs[key];
             continue;
@@ -240,8 +240,8 @@
             board,
             cog,
             targetCog,
-            coordFrom: cog.position(Number.parseInt(key)),
-            coordTo: targetCog.position(Number.parseInt(cog.key))
+            keyFrom: Number.parseInt(key),
+            keyTo: Number.parseInt(cog.key)
           });
           delete interimCogs[cog.key];
         }
@@ -259,8 +259,8 @@
             step.board,
             step.cog,
             step.targetCog,
-            step.coordFrom,
-            step.coordTo);
+            step.cog.position(step.keyFrom),
+            step.targetCog.position(step.keyTo));
         }
       }
 
@@ -342,12 +342,12 @@
         const clone = cogInvetory.clone();
         for (let i = 0; i < ev.page; i++) {
           const step = optimalSteps[i];
-          clone.move(step.cog.key, step.targetCog.key);
+          clone.move(step.keyFrom, step.keyTo );
         }
 
         const currentStep = optimalSteps[ev.page];
-        const pos1 = currentStep.coordFrom;
-        const pos2 = currentStep.coordTo;
+        const pos1 = currentStep.cog.position(currentStep.keyFrom);
+        const pos2 = currentStep.targetCog.position(currentStep.keyTo);
 
         // TODO Paddy: clone is now in the state _before_ the move, that should be displayed with the 2 positions highlighted.
         f.printBoard(clone.board);
