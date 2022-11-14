@@ -185,13 +185,13 @@ class CogInventory {
     const cogRaw = JSON.parse(save["CogM"]);
     const cogIcons = JSON.parse(save["CogO"]).map(c=>{
       if(c === "Blank") { return c; }
-      if(c.startsWith("Player")) { return playerNames ? hatIcons[c.substring(7)] : "head"; }
-      if(c === "CogY") { return "Yang_Cog"; }
+      if(c.startsWith("Player")) { return playerNames ? "hats/" + hatIcons[c.substring(7)] : "head"; }
+      if(c === "CogY") { return "cogs/Yang_Cog"; }
       const parsed=c.match(/^Cog([0123YZ])(.{2,3})$/);
       if(parsed[1] === "Z") {
-        return YIN_MAP[parsed[2]];
+        return "cogs/" + YIN_MAP[parsed[2]];
       }
-      return ICON_TYPE_MAP[parsed[2]] + "_" + ICON_QUALITY_MAP[parsed[1]];
+      return "cogs/" + ICON_TYPE_MAP[parsed[2]] + "_" + ICON_QUALITY_MAP[parsed[1]];
     });
     const cogArray = Object.entries(cogRaw).map(([key, c]) => {
       const keyNum = Number.parseInt(key);
@@ -216,9 +216,9 @@ class CogInventory {
     // Get the available board
     this.flagPose = JSON.parse(save["FlagP"]).filter(v=>v>=0); // Only first 4 are used
     const slots = JSON.parse(save["FlagU"]).map((n, i) => {
-      if (n > 0 && this.flagPose.includes(i)) return new Cog({ key: i, fixed: true, blocked: true, isFlag: true });
+      if (n > 0 && this.flagPose.includes(i)) return new Cog({ key: i, fixed: true, blocked: true, isFlag: true, icon: "Blank" });
       if (n !== -11) return new Cog({ key: i, fixed: true, blocked: true });
-      return new Cog({ key: i });
+      return new Cog({ key: i, icon: "Blank" });
     });
     // Map slots and cogs to a key -> obj map
     this.slots = {};
@@ -370,8 +370,16 @@ class CogInventory {
     }
     const temp = this.cogs[pos2];
     this.cogs[pos2] = this.cogs[pos1];
+		if (!this.cogs[pos2]) {
+			delete this.cogs[pos2];
+		} else {
+			this.cogs[pos2].key = pos2;
+		}
     this.cogs[pos1] = temp;
-    this.cogs[pos1].key = pos1;
-    this.cogs[pos2].key = pos2;
+		if (!this.cogs[pos1]) {
+			delete this.cogs[pos1];
+		} else {
+			this.cogs[pos1].key = pos1;
+		}
   }
 }

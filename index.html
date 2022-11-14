@@ -155,13 +155,15 @@
       
       f.printMove = (board, cog1, cog2, pos1, pos2) => {
         const prevMoves = [...moves];
-        moves.push({pos1: cog1.key, pos2: cog2.key});
+        moves.push({pos1, pos2});
         const toAdd = createElem("p");
-        toAdd.innerHTML = `Switch ${pos1.location} \
-        [${pos1.x + 1}|${pos1.y + 1}] \
+        const pos1xy = cog1.position(pos1);
+        const pos2xy = cog2.position(pos2);
+        toAdd.innerHTML = `Switch ${pos1xy.location} \
+        [${pos1xy.x + 1}|${pos1xy.y + 1}] \
         (${cog1.buildRate || 0}:${cog1.expBonus || 0}:${cog1.flaggy || 0}) <span style="background-image:url('icons/${cog1.icon}.png')"></span> with \
-        ${pos2.location} \
-        [${pos2.x + 1}|${pos2.y + 1}] \
+        ${pos2xy.location} \
+        [${pos2xy.x + 1}|${pos2xy.y + 1}] \
         (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0}) <span style="background-image:url('icons/${cog2.icon}.png')"></span>`;
         toAdd.onclick = () => {
           const clone = cogInvetory.clone();
@@ -170,8 +172,8 @@
           }
           // TODO Paddy: clone is now in the state _before_ the move, that should be displayed with the 2 positions highlighted.
           f.printBoard(clone.board);
-          window.boardRenderer.move(pos1, pos2);
-          window.spareRenderer.move(pos1, pos2);
+          window.boardRenderer.move(pos1xy, pos2xy);
+          window.spareRenderer.move(pos1xy, pos2xy);
         }
         document.getElementById("steps").appendChild(toAdd);
       }
@@ -205,13 +207,13 @@
         let tuple;
         while (tuple = Object.entries(interimCogs)[0]) {
           const [key, cog] = tuple;
-          const targetCog = interimCogs[cog.key];
+          const targetCog = interimCogs[cog.key] || { icon: "Blank", key, position: cog.position.bind(cog) };
           if (targetCog === cog) {
             delete interimCogs[key];
             continue;
           }
           interimCogs[key] = targetCog;
-          f.printMove(board, cog, targetCog, cog.position(Number.parseInt(key)), targetCog.position(Number.parseInt(cog.key)));
+          f.printMove(board, cog, targetCog, Number.parseInt(key), Number.parseInt(cog.key));
           delete interimCogs[cog.key];
         }
       }

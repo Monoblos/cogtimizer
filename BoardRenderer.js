@@ -129,12 +129,12 @@ class BoardRenderer {
       if (cog.icon === "Blank") {
         div.innerHTML = "";
         div.style.backgroundImage = "";
-      } else if (cog.icon.startsWith("Equipment")) {
-        div.style.backgroundImage = `url("icons/hats/${cog.icon}.png")`;
+      } else if (cog.icon.startsWith("hats")) {
+        div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
         div.innerHTML = `<div style="word-break: break-all;font-size: 8px;line-height: 1.4;padding: 2px;">${cog.icon.substr(7)}` + "</div>";
       } else {
         div.innerHTML = "";
-        div.style.backgroundImage = `url("icons/cogs/${cog.icon}.png")`;
+        div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
       }
     } else {
       if (cog.isFlag) {
