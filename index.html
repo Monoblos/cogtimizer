@@ -148,6 +148,14 @@
       const stepsPage = new Paginator("stepspage", 0, 0, "Step");
       stepsPage.addEventListener("change", stepsChangeHandler);
 
+      window.addEventListener("keyup", (ev) => {
+        if (ev.key == "ArrowLeft") {
+          stepsPage.prev(ev);
+        } else if (ev.key == "ArrowRight") {
+          stepsPage.next(ev);
+        }
+      }, true);
+
       const spareElem = document.getElementById("spare");
       const spareParent = spareElem.parentNode;
       spareParent.insertBefore(window.spareRenderer.createHTMLElement(), spareElem);
