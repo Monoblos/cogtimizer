@@ -181,10 +181,6 @@
           }
         }
       }
-
-      let moveIndex = 0;
-      //TODO Paddy: Kann so schlecht resettet werden (und wird aktuell nicht genutzt)
-      let moves = [];
       
       f.printBoard = (board, cord1={},cord2={}) => {
         for (let i = 0; i < board.length; i++) {
@@ -346,7 +342,7 @@
         const clone = cogInvetory.clone();
         for (let i = 0; i < ev.page; i++) {
           const step = optimalSteps[i];
-          clone.move(step.cog.key, step.targetCog.key );
+          clone.move(step.cog.key, step.targetCog.key);
         }
 
         const currentStep = optimalSteps[ev.page];
