@@ -54,6 +54,16 @@ class Paginator extends EventTarget {
         this._nextElem.className = (this.pageIndex < this.pageCount - 1) ? "hasMore" : "";
     }
 
+    reset(pageCount, startPage = undefined) {
+        this.pageCount = pageCount;
+        if (!startPage) {
+            startPage = Math.max(0, startPage - 1);
+        }
+
+        this.startPage = startPage;
+        this.goto(startPage);
+    }
+
     goto(page) {
         page = Math.max(0, Math.min(page, this.pageCount));
         const event = new PageEvent("change", page, "goto");
@@ -63,7 +73,7 @@ class Paginator extends EventTarget {
         }
     }
 
-    prev() {
+    prev(ev) {
         if (this.pageIndex > 0) {
             const event = new PageEvent("change", this.pageIndex - 1, "prev");
             if (this.dispatchEvent(event)) {
@@ -71,9 +81,11 @@ class Paginator extends EventTarget {
                 this._updatePage();
             }
         }
+        ev.preventDefault();
+        return false;
     }
 
-    next() {
+    next(ev) {
         if (this.pageIndex < this.pageCount - 1) {
             const event = new PageEvent("change", this.pageIndex + 1, "next");
             if (this.dispatchEvent(event)) {
@@ -81,5 +93,7 @@ class Paginator extends EventTarget {
                 this._updatePage();
             }
         }
+        ev.preventDefault();
+        return false;
     }
 }
