@@ -20,7 +20,6 @@ class PlayerRenderer {
         hats.src = "assets/hats2.png";
         hats.style.visibility = "hidden";
         document.body.appendChild(hats);
-
         this._hatsImg = hats;
 
         const head = document.createElement("img");
@@ -29,26 +28,30 @@ class PlayerRenderer {
         document.body.appendChild(head);
         this._headImg = head;
 
-        let canvas = document.createElement("canvas");
-        canvas.width = head.width;
-        canvas.height = head.height;
-        canvas.style.visibility = "hidden";
-        document.body.appendChild(canvas);
-        this._head.canvas = canvas;
-        let ctx = canvas.getContext("2d");
+        const headCanvas = document.createElement("canvas");
+        head.addEventListener("load", (ev) => {
+            console.log("Head loaded");
+            headCanvas.width = head.width;
+            headCanvas.height = head.height;
+        });
+        headCanvas.style.visibility = "hidden";
+        document.body.appendChild(headCanvas);
+        this._head.canvas = headCanvas;
+        let ctx = headCanvas.getContext("2d");
         this._head.context = ctx;
 
-        canvas = document.createElement("canvas");
-        canvas.width = this.width;
-        canvas.height = this.height;
-        canvas.style.visibility = "hidden";
-        document.body.appendChild(canvas);
-        this._player.canvas = canvas;
-        ctx = canvas.getContext("2d");
+        const playerCanvas = document.createElement("canvas");
+        playerCanvas.width = this.width;
+        playerCanvas.height = this.height;
+        playerCanvas.style.visibility = "hidden";
+        document.body.appendChild(playerCanvas);
+        this._player.canvas = playerCanvas;
+        ctx = playerCanvas.getContext("2d");
         this._player.context = ctx;
     }
 
     _colorHead(pr, pg, pb) {
+        console.log("color head");
         const ctx = this._head.context;
         ctx.clearRect(0, 0, this._head.width, this._head.height);
         let headW = parseInt(this._headImg.width);
@@ -67,7 +70,7 @@ class PlayerRenderer {
                   g = imgData.data[i+1],
                   b = imgData.data[i+2],
                   a = imgData.data[i+3];
-            if (r + g + b + a !== 0) {
+            if (r + g + b + a !== 0 && r + g + b + a < (255 * 4) * .9) {
                 imgData.data[i]   = r * pr;
                 imgData.data[i+1] = g * pg;
                 imgData.data[i+2] = b * pb;
@@ -89,7 +92,7 @@ class PlayerRenderer {
 
         ctx.clearRect(0, 0, this.width, this.height);
         
-        this._colorHead(Math.random(), Math.random(), Math.random());
+        // this._colorHead(Math.random(), Math.random(), Math.random());
         ctx.drawImage(
             this._head.canvas,
             hw - headW * this.scale * .5,

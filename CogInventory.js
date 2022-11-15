@@ -154,10 +154,52 @@ class CogInventory {
     this._score = null;
     console.log("Loading");
 
+    let foo = [];
+    foo[1] = "Beginner"; // White
+    foo[2] = "Journeyman";
+    foo[3] = "Maestro";
+    foo[7] = "Warrior"; // 
+    foo[8] = "Barbarian";
+    foo[9] = "Squire";
+    foo[10] = "Blood Berserker";
+    foo[12] = "Divine Knight";
+    foo[19] = "Archer"; // 
+    foo[20] = "Bowman";
+    foo[21] = "Hunter";
+    foo[22] = "Siege Breaker";
+    foo[25] = "Beast Master";
+    foo[31] = "Mage"; // 
+    foo[32] = "Wizard";
+    foo[33] = "Shaman";
+    foo[34] = "Elemental Sorcerer";
+
     const hatIcons = {};
     const playerNames = save["playerNames"];
     if (playerNames) {
       playerNames.forEach((v, i) => {
+        const classNameSlot = `CharacterClass_${i}`;
+        const classNameIndex = save[classNameSlot];
+        const className = foo[classNameIndex];
+        console.log(v, classNameIndex, className);
+
+        if (classNameIndex >= 31) {
+          // Mage
+          window.player._colorHead(.9, .77, 1);
+        } else if (classNameIndex >= 19) {
+          // Archer
+          window.player._colorHead(.58, 1, .6);
+        } else if (classNameIndex >= 7) {
+          // Warrior
+          window.player._colorHead(1, .77, .75);
+        } else if (classNameIndex === 9) {
+          // Squire
+          window.player._colorHead(1, 1, 0);
+        } else {
+          // Beginner
+          // Journeyman
+          window.player._colorHead(.5, .91, .92);
+        }
+
         const equipmentSlot = `EquipOrder_${i}`;
         const equipment = save[equipmentSlot];
         let hatFound = false;
@@ -172,7 +214,7 @@ class CogInventory {
                 const index = parseInt(match[1]);
                 hatIcons[v] = {
                   type: "hat",
-                  data: window.player.render(index)
+                  path: window.player.render(index)
                 };
                 hatFound = true;
               }

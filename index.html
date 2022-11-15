@@ -269,11 +269,11 @@
         if (showStats) {
           text += ` (${cog1.buildRate || 0}:${cog1.expBonus || 0}:${cog1.flaggy || 0})`;
         }
-        text += ` <span style="background-image:url('icons/${cog1.icon}.png')"></span> with ${pos2.location} [${pos2.x + 1}|${pos2.y + 1}]`;
+        text += ` <span style="background-image: url('${cog1.icon.path}')"></span> with ${pos2.location} [${pos2.x + 1}|${pos2.y + 1}]`;
         if (showStats) {
           text += ` (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0})`;
         }
-        text += ` <span style="background-image:url('icons/${cog2.icon}.png')"></span>`;
+        text += ` <span style="background-image: url('${cog2.icon.path}')"></span>`;
 
         toAdd.innerHTML = text;
 
@@ -391,7 +391,7 @@
             load(json);
           }).catch((reason) => {
             console.log(reason);
-          })
+          });
         }
       }
 

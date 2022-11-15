@@ -137,9 +137,6 @@ class BoardRenderer {
       if (cog.icon.type === "blank") {
         div.style.backgroundImage = "";
         div.innerHTML = "";
-      } else if (cog.icon.type === "hat") {
-        div.style.backgroundImage = `url("${cog.icon.data}")`;
-        div.innerHTML = "";
       } else {
         div.style.backgroundImage = `url("${cog.icon.path}")`;
         div.innerHTML = "";
