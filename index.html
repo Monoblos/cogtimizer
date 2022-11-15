@@ -221,6 +221,8 @@
           slider.classList.remove("active");
           settingsPage.style.display = "none";
         } else {
+          openCogTab();
+
           slider.classList.add("active");
           settingsPage.style.display = "";
           settingsPage.style.left = borderElem.offsetLeft + "px";

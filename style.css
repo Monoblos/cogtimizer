@@ -334,9 +334,18 @@ table.cogboard tr > td {
     margin: 1em 0;
 }
 
-.stats > span > h3 {
+h3, h4 {
     padding: 0;
     margin: 0;
+}
+
+h4 {
+    font-family: 'PressStart';
+}
+
+hr {
+    border-top: 2px solid #f4fcff;
+    border-bottom: 2px solid #c0d9e3;
 }
 
 .stats > span * {
