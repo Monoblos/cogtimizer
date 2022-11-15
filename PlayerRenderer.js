@@ -1,8 +1,14 @@
 class PlayerRenderer {
-    _hats;
-    _head;
-    _canvas;
-    _ctx;
+    _hatsImg;
+    _headImg;
+    _player = {
+        canvas: undefined,
+        context: undefined
+    };
+    _head = {
+        canvas: undefined,
+        context: undefined
+    };
 
     width = 36;
     height = 36;
@@ -15,38 +21,77 @@ class PlayerRenderer {
         hats.style.visibility = "hidden";
         document.body.appendChild(hats);
 
-        this._hats = hats;
+        this._hatsImg = hats;
 
         const head = document.createElement("img");
         head.src = "icons/head.png";
         head.style.visibility = "hidden";
         document.body.appendChild(head);
-        this._head = head;
+        this._headImg = head;
 
-        const canvas = document.createElement("canvas");
+        let canvas = document.createElement("canvas");
+        canvas.width = head.width;
+        canvas.height = head.height;
+        canvas.style.visibility = "hidden";
+        document.body.appendChild(canvas);
+        this._head.canvas = canvas;
+        let ctx = canvas.getContext("2d");
+        this._head.context = ctx;
+
+        canvas = document.createElement("canvas");
         canvas.width = this.width;
         canvas.height = this.height;
         canvas.style.visibility = "hidden";
         document.body.appendChild(canvas);
-        this._canvas = canvas;
-        const ctx = canvas.getContext("2d");
-        this._ctx = ctx;
+        this._player.canvas = canvas;
+        ctx = canvas.getContext("2d");
+        this._player.context = ctx;
+    }
+
+    _colorHead(pr, pg, pb) {
+        const ctx = this._head.context;
+        ctx.clearRect(0, 0, this._head.width, this._head.height);
+        let headW = parseInt(this._headImg.width);
+        let headH = parseInt(this._headImg.height);
+        ctx.drawImage(
+            this._headImg,
+            0,
+            0,
+            headW,
+            headH
+        );
+
+        let imgData = ctx.getImageData(0, 0, headW, headH);
+        for (let i = 0; i < imgData.data.length; i += 4) {
+            const r = imgData.data[i],
+                  g = imgData.data[i+1],
+                  b = imgData.data[i+2],
+                  a = imgData.data[i+3];
+            if (r + g + b + a !== 0) {
+                imgData.data[i]   = r * pr;
+                imgData.data[i+1] = g * pg;
+                imgData.data[i+2] = b * pb;
+            }
+        }
+
+        ctx.putImageData(imgData, 0, 0);
     }
 
     render(index) {
         const defaultYOffset = 5;
 
-        const ctx = this._ctx;
-
-        let headW = parseInt(this._head.width);
-        let headH = parseInt(this._head.height);
+        let headW = parseInt(this._headImg.width);
+        let headH = parseInt(this._headImg.height);
 
         let hw = this.width * .5;
         let hh = this.height * .5;
+        const ctx = this._player.context;
 
         ctx.clearRect(0, 0, this.width, this.height);
+        
+        this._colorHead(Math.random(), Math.random(), Math.random());
         ctx.drawImage(
-            this._head,
+            this._head.canvas,
             hw - headW * this.scale * .5,
             defaultYOffset + hh - headH * this.scale * .5,
             headW * this.scale,
@@ -68,7 +113,7 @@ class PlayerRenderer {
         const shScaled = sh * this.scale;
 
         ctx.drawImage(
-            this._hats,
+            this._hatsImg,
             col * sw,
             row * sh,
             sw,
@@ -79,7 +124,7 @@ class PlayerRenderer {
             shScaled
         );
 
-        return this._canvas.toDataURL();
+        return this._player.canvas.toDataURL();
     }
 }
 
