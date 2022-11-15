@@ -209,8 +209,9 @@ class CogInventory {
         const parsed=c.match(/^Cog([0123YZ])(.{2,3})$/);
         if(parsed[1] === "Z") {
           icon.path = "icons/cogs/" + YIN_MAP[parsed[2]] + ".png";
+        } else {
+          icon.path = "icons/cogs/" + ICON_TYPE_MAP[parsed[2]] + "_" + ICON_QUALITY_MAP[parsed[1]] + ".png";
         }
-        icon.path = "icons/cogs/" + ICON_TYPE_MAP[parsed[2]] + "_" + ICON_QUALITY_MAP[parsed[1]] + ".png";
       }
       return icon;
     });
