@@ -139,6 +139,10 @@ class BoardRenderer {
       } else if (cog.icon.startsWith("hats")) {
         div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
         div.innerHTML = `<div style="word-break: break-all;font-size: 8px;line-height: 1.4;padding: 2px;">${cog.icon.substr(7)}` + "</div>";
+      } else if (cog.icon.startsWith("head")) {
+        div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
+				div.style.transform = "scale(2.5)"
+        div.innerHTML = "";
       } else {
         div.innerHTML = "";
         div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
