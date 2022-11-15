@@ -426,3 +426,14 @@ table.cogboard tr > td {
     from { opacity: 0%; }
     to { opacity: 100%; }
 }
+
+.switch {
+    position: absolute;
+    display: block;
+    content: "";
+    z-index: 1000;
+    transition: all 1s ease-in-out;
+    left: -1000px;
+    top: -1000px;
+    opacity: 0;
+}

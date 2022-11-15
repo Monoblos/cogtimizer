@@ -96,6 +96,16 @@
             <label for="solveTime">Solve times (ms)</label><br />
             <input type="number" id="solveTime" value="1000" style="width:10ch"></input>
           </p>
+          <h4>Misc.</h4>
+          <hr />
+          <p>
+            <label for="showStats">Show cog stats?</label>
+            <input type="checkbox" id="showStats" />
+          </p>
+          <p>
+            <label for="showSolved">Directly show solved board</label>
+            <input type="checkbox" id="showSolved" />
+          </p>
         </div>
         <div id="currentBoard">
         </div>
@@ -105,6 +115,46 @@
     <p id="start"></p>
     <p id="end"></p>
     <script type="text/javascript">
+      function createSwitchAnimation() {
+        let fromDiv,
+            timerID;
+
+        fromDiv = document.createElement("div");
+        document.body.appendChild(fromDiv);
+
+        return function animateSwitch(fromElem, targetBoundingRect) {
+          fromDiv.className = "";
+
+          Object.values(fromElem.style)
+            .filter((v) => !(v in ["height", "width", "position"]))
+            .forEach((key) => {
+              let value = fromElem.style[key];
+              fromDiv.style[key] = value;
+            });
+
+          const bounds = fromElem.getBoundingClientRect();
+          fromDiv.style.width = bounds.width + "px";
+          fromDiv.style.height = bounds.height + "px";
+          fromDiv.style.top = bounds.top + "px";
+          fromDiv.style.left = bounds.left + "px";
+          
+          clearTimeout(timerID);
+          timerID = setTimeout(() => {
+            fromDiv.className = "switch";
+
+            const bounds = targetBoundingRect;
+            fromDiv.style.width = bounds.width + "px";
+            fromDiv.style.height = bounds.height + "px";
+            fromDiv.style.top = bounds.top + "px";
+            fromDiv.style.left = bounds.left + "px";
+          }, 5);
+        }
+      }
+
+      const animateSwitchFrom = createSwitchAnimation();
+      const animateSwitchTo = createSwitchAnimation();
+      // window.animateSwitch = animateSwitch;
+
       const ROWS = 8;
       const COLUMNS = 12;
       const OPTIMIZABLE = ["buildRate", "expBonus", "flaggy"];
@@ -206,15 +256,21 @@
         return new Promise(r=>setTimeout(r,1));
       }
       
-      f.printMove = (stepNumber, board, cog1, cog2, pos1, pos2) => {
+      f.printMove = (stepNumber, board, cog1, cog2, pos1, pos2, showStats = false) => {
         const toAdd = createElem("p");
 
-        toAdd.innerHTML = `Switch ${pos1.location} \
-        [${pos1.x + 1}|${pos1.y + 1}] \
-        (${cog1.buildRate || 0}:${cog1.expBonus || 0}:${cog1.flaggy || 0}) <span style="background-image:url('icons/${cog1.icon}.png')"></span> with \
-        ${pos2.location} \
-        [${pos2.x + 1}|${pos2.y + 1}] \
-        (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0}) <span style="background-image:url('icons/${cog2.icon}.png')"></span>`;
+        let text = `Switch ${pos1.location} \
+        [${pos1.x + 1}|${pos1.y + 1}]`;
+        if (showStats) {
+          text += ` (${cog1.buildRate || 0}:${cog1.expBonus || 0}:${cog1.flaggy || 0})`;
+        }
+        text += ` <span style="background-image:url('icons/${cog1.icon}.png')"></span> with ${pos2.location} [${pos2.x + 1}|${pos2.y + 1}]`;
+        if (showStats) {
+          text += ` (${cog2.buildRate || 0}:${cog2.expBonus || 0}:${cog2.flaggy || 0})`;
+        }
+        text += ` <span style="background-image:url('icons/${cog2.icon}.png')"></span>`;
+
+        toAdd.innerHTML = text;
 
         toAdd.onclick = () => {
           stepsPage.goto(stepNumber);
@@ -259,6 +315,7 @@
 
       f.printOptimalSteps = (steps) => {
         document.getElementById("steps").innerHTML = "";
+        const showStats = document.getElementById("showStats").checked;
 
         for (let i = 0; i < steps.length; i++) {
           const step = steps[i];
@@ -268,7 +325,8 @@
             step.cog,
             step.targetCog,
             step.cog.position(step.keyFrom),
-            step.targetCog.position(step.keyTo));
+            step.targetCog.position(step.keyTo),
+            showStats);
         }
       }
 
@@ -373,6 +431,24 @@
         }
 
         window.spareRenderer.move(pos1, pos2);
+        
+        // Animation
+        const renderer = {
+          [window.boardRenderer._type]: window.boardRenderer,
+          [window.spareRenderer._type]: window.spareRenderer
+        };
+
+        const pos1Slot = renderer[pos1.location].get(pos1.y, pos1.x);
+        const pos2Slot = renderer[pos2.location].get(pos2.y, pos2.x);
+
+        if (pos1Slot.elem.childNodes.length === 1) {
+          const from = pos1Slot.elem.childNodes[0];
+          animateSwitchFrom(from, pos2Slot.elem.getBoundingClientRect());
+        }
+        if (pos2Slot.elem.childNodes.length === 1) {
+          const to = pos2Slot.elem.childNodes[0];
+          animateSwitchTo(to, pos1Slot.elem.getBoundingClientRect());
+        }
       }
 
       document.getElementById("solve").onclick = async () => {
@@ -397,9 +473,14 @@
         
         optimalSteps = f.getOptimalSteps(best.board, best.cogs);
         f.printOptimalSteps(optimalSteps);
-        f.printBoard(best.board);
-        
-        stepsPage.reset(optimalSteps.length, optimalSteps.length - 1);
+        if (document.getElementById("showSolved").checked) {
+          // Show solved board 
+          f.printBoard(best.board);
+          stepsPage.reset(optimalSteps.length, optimalSteps.length - 1);
+        } else {
+          f.printBoard(start.board);
+          stepsPage.reset(optimalSteps.length, 0);
+        }
 
         document.getElementById("solvetext").innerText = "Solve";
         openCogTab();
