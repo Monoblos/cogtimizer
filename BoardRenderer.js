@@ -127,25 +127,22 @@ class BoardRenderer {
         div = col.firstChild;
       } else {
         div = createElem("div");
+        div.style.width = "100%";
         div.style.height = "100%";
         div.style.backgroundPosition = "center";
         div.style.color = "white";
         col.appendChild(div);
       }
 
-      if (cog.icon === "Blank") {
-        div.innerHTML = "";
+      if (cog.icon.type === "blank") {
         div.style.backgroundImage = "";
-      } else if (cog.icon.startsWith("hats")) {
-        div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
-        div.innerHTML = `<div style="word-break: break-all;font-size: 8px;line-height: 1.4;padding: 2px;">${cog.icon.substr(7)}` + "</div>";
-      } else if (cog.icon.startsWith("head")) {
-        div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
-				div.style.transform = "scale(2.5)"
+        div.innerHTML = "";
+      } else if (cog.icon.type === "hat") {
+        div.style.backgroundImage = `url("${cog.icon.data}")`;
         div.innerHTML = "";
       } else {
+        div.style.backgroundImage = `url("${cog.icon.path}")`;
         div.innerHTML = "";
-        div.style.backgroundImage = `url("icons/${cog.icon}.png")`;
       }
     } else {
       if (cog.isFlag) {

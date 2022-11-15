@@ -395,6 +395,21 @@ hr {
     100% { background-position: -320px 0; }
 }
 
+.dice {
+    display: inline-block;
+    width: 70px;
+    height: 70px;
+    background: url("assets/diceroll.png") top left;
+    animation: dice 1s steps(15) infinite;
+    transform: scale(-1, 1);
+    position: relative;
+    top: 6px;
+}
+
+@keyframes dice {
+    100% { background-position: -1050px 0; }
+}
+
 .heart {
     display: inline-block;
     width: 38px;
@@ -442,7 +457,17 @@ hr {
     content: "";
     z-index: 1000;
     transition: all 1s ease-in-out;
+    background-repeat: no-repeat;
+    background-repeat: center;
     left: -1000px;
     top: -1000px;
     opacity: 0;
 }
+
+.hat {
+    background-image: url("assets/hats2.png");
+    background-repeat: no-repeat;
+    width: 30px;
+    height: 50px;
+}
+

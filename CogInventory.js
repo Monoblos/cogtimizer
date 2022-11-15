@@ -167,14 +167,23 @@ class CogInventory {
           for (let i = 0; i < length; i++) {
             const eqName = slots[i];
             if (eqName.indexOf("Hats") !== -1) {
-              hatIcons[v] = eqName + "_x1";
-              hatFound = true;
+              const match = eqName.match(/EquipmentHats(\d+)(?:_x1)?/);
+              if (match.length === 2) {
+                const index = parseInt(match[1]);
+                hatIcons[v] = {
+                  type: "hat",
+                  data: window.player.render(index)
+                };
+                hatFound = true;
+              }
               break;
             }
           }
         });
         if (!hatFound) {
-          hatIcons[v] = "head";
+          hatIcons[v] = {
+            type: "head"
+          };
         }
       });
     }
@@ -184,14 +193,26 @@ class CogInventory {
     // Fetch the list of available cogs
     const cogRaw = JSON.parse(save["CogM"]);
     const cogIcons = JSON.parse(save["CogO"]).map(c=>{
-      if(c === "Blank") { return c; }
-      if(c.startsWith("Player")) { return playerNames ? "hats/" + hatIcons[c.substring(7)] : "head"; }
-      if(c === "CogY") { return "cogs/Yang_Cog"; }
-      const parsed=c.match(/^Cog([0123YZ])(.{2,3})$/);
-      if(parsed[1] === "Z") {
-        return "cogs/" + YIN_MAP[parsed[2]];
+      let icon = {
+        type: "cog"
+      };
+      if(c === "Blank") {
+        icon.type = "blank";
+        icon.path = "assets/cog_blank.png"
+      } else if(c.startsWith("Player")) {
+        icon = hatIcons[c.substring(7)];
+      } else if(c === "CogY") {
+        icon.type = "cog";
+        icon.path = "icons/cogs/Yang_Cog.png";
+      } else {
+        icon.type = "cog";
+        const parsed=c.match(/^Cog([0123YZ])(.{2,3})$/);
+        if(parsed[1] === "Z") {
+          icon.path = "icons/cogs/" + YIN_MAP[parsed[2]] + ".png";
+        }
+        icon.path = "icons/cogs/" + ICON_TYPE_MAP[parsed[2]] + "_" + ICON_QUALITY_MAP[parsed[1]] + ".png";
       }
-      return "cogs/" + ICON_TYPE_MAP[parsed[2]] + "_" + ICON_QUALITY_MAP[parsed[1]];
+      return icon;
     });
     const cogArray = Object.entries(cogRaw).map(([key, c]) => {
       const keyNum = Number.parseInt(key);

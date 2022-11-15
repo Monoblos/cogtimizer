@@ -11,6 +11,7 @@
     <script type="text/javascript" src="Solver.js"></script>
     <script type="text/javascript" src="CogInventory.js"></script>
     <script type="text/javascript" src="BoardRenderer.js"></script>
+    <script type="text/javascript" src="PlayerRenderer.js"></script>
     <script type="text/javascript" src="Paginator.js"></script>
     
     <title>Cogtimizer</title>
@@ -153,7 +154,9 @@
 
       const animateSwitchFrom = createSwitchAnimation();
       const animateSwitchTo = createSwitchAnimation();
-      // window.animateSwitch = animateSwitch;
+
+      const player = new PlayerRenderer();
+      window.player = player;
 
       const ROWS = 8;
       const COLUMNS = 12;
@@ -443,11 +446,11 @@
         const pos1Slot = renderer[pos1.location].get(pos1.y, pos1.x);
         const pos2Slot = renderer[pos2.location].get(pos2.y, pos2.x);
 
-        if (pos1Slot.elem.childNodes.length === 1) {
+        if (pos1Slot.item && pos1Slot.item.icon !== "Blank" && pos1Slot.elem.childNodes.length === 1) {
           const from = pos1Slot.elem.childNodes[0];
           animateSwitchFrom(from, pos2Slot.elem.getBoundingClientRect());
         }
-        if (pos2Slot.elem.childNodes.length === 1) {
+        if (pos2Slot.item && pos2Slot.item.icon !== "Blank" && pos2Slot.elem.childNodes.length === 1) {
           const to = pos2Slot.elem.childNodes[0];
           animateSwitchTo(to, pos1Slot.elem.getBoundingClientRect());
         }
