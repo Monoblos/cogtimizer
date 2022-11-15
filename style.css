@@ -463,11 +463,3 @@ hr {
     top: -1000px;
     opacity: 0;
 }
-
-.hat {
-    background-image: url("assets/hats2.png");
-    background-repeat: no-repeat;
-    width: 30px;
-    height: 50px;
-}
-
