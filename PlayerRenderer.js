@@ -64,7 +64,12 @@ class PlayerRenderer {
             headH
         );
 
-        let imgData = ctx.getImageData(0, 0, headW, headH);
+        let imgData;
+        try {
+          imgData = ctx.getImageData(0, 0, headW, headH);
+				} catch(e) {
+					return;
+				}
         for (let i = 0; i < imgData.data.length; i += 4) {
             const r = imgData.data[i],
                   g = imgData.data[i+1],

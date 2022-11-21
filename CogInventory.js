@@ -224,7 +224,8 @@ class CogInventory {
         });
         if (!hatFound) {
           hatIcons[v] = {
-            type: "head"
+            type: "head",
+						path: "icons/head.png"
           };
         }
       });
@@ -242,7 +243,7 @@ class CogInventory {
         icon.type = "blank";
         icon.path = "assets/cog_blank.png"
       } else if(c.startsWith("Player")) {
-        icon = hatIcons[c.substring(7)];
+        icon = hatIcons[c.substring(7)] || { type: "head", path: "icons/head.png" };
       } else if(c === "CogY") {
         icon.type = "cog";
         icon.path = "icons/cogs/Yang_Cog.png";
