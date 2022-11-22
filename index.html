@@ -246,9 +246,7 @@
       }
       
       f.printBoard = (board, cord1={},cord2={}) => {
-        for (let i = 0; i < board.length; i++) {
-          const row = createElem("tr");
-          
+        for (let i = 0; i < board.length; i++) {          
           for (let j = 0; j < board[i].length; j++) {
             window.boardRenderer.set(i, j, board[i][j]);
           }
@@ -403,6 +401,8 @@
         } catch (e) {
           if (e instanceof SyntaxError) {
             fetchAndLoadConfig(input);
+          } else {
+            throw e;
           }
         }
       });

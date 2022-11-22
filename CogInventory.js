@@ -175,6 +175,12 @@ class CogInventory {
 
     const hatIcons = {};
     const playerNames = save["playerNames"];
+
+    window.player.reset();
+    const defaultHead = {
+      type: "head",
+      path: window.player.render()
+    };
     if (playerNames) {
       playerNames.forEach((v, i) => {
         const classNameSlot = `CharacterClass_${i}`;
@@ -223,9 +229,7 @@ class CogInventory {
           }
         });
         if (!hatFound) {
-          hatIcons[v] = {
-            type: "head"
-          };
+          hatIcons[v] = defaultHead;
         }
       });
     }
@@ -242,7 +246,12 @@ class CogInventory {
         icon.type = "blank";
         icon.path = "assets/cog_blank.png"
       } else if(c.startsWith("Player")) {
-        icon = hatIcons[c.substring(7)];
+        const name = c.substring(7);
+        if (name in hatIcons) {
+          icon = hatIcons[name];
+        } else {
+          icon = defaultHead;
+        }
       } else if(c === "CogY") {
         icon.type = "cog";
         icon.path = "icons/cogs/Yang_Cog.png";
