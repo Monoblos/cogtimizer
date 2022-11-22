@@ -95,7 +95,7 @@
           </p>
           <p>
             <label for="solveTime">Solve times (ms)</label><br />
-            <input type="number" id="solveTime" value="1000" style="width:10ch"></input>
+            <input type="number" id="solveTime" value="2500" style="width:10ch"></input>
           </p>
           <h4>Misc.</h4>
           <hr />
@@ -371,6 +371,14 @@
         document.getElementById("buildrate").innerText = mmoifyNumber(initScore.buildRate, false) + "/HR";
         document.getElementById("xpbonus").innerText = mmoifyNumber(initScore.expBonus, false) + "%";
         document.getElementById("flaggyrate").innerText = mmoifyNumber(initScore.flaggy, false) + "/HR";
+        
+        for (let oneOption of [...OPTIMIZABLE, "solveTime"]) {
+          const val = localStorage.getItem(oneOption);
+          if (val) {
+            document.getElementById(oneOption).value = val;
+          }
+        }
+        
 
         openCogTab();
       }
@@ -458,6 +466,7 @@
 
       document.getElementById("solve").onclick = async () => {
         const solveTime = getInput("solveTime") || 2500;
+        localStorage.setItem("solveTime", solveTime);
         document.getElementById("solvetext").innerText = "Optimizing...";
         document.getElementById("steps").innerHTML = "";
         let lastYield = Date.now();
@@ -468,6 +477,10 @@
         let start = cogInvetory.clone();
 
         document.getElementById("start").innerText = `Starting BuildRate: ${start.score.buildRate}, EXP: ${start.score.expBonus}, Flaggy: ${start.score.flaggy}`;
+        const [buildRate, expBonus, flaggy] = [getInput("buildRate"), getInput("expBonus"), getInput("flaggy")];
+        localStorage.setItem("buildRate", buildRate);
+        localStorage.setItem("expBonus", expBonus);
+        localStorage.setItem("flaggy", flaggy);
         solver.setWeights(getInput("buildRate"), getInput("expBonus"), getInput("flaggy"));
         const best = await solver.solve(cogInvetory, solveTime);
         document.getElementById("end").innerText = `Final BuildRate: ${best.score.buildRate}, EXP: ${best.score.expBonus}, Flaggy: ${best.score.flaggy}`;

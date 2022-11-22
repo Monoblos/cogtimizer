@@ -60,7 +60,13 @@ class PlayerRenderer {
         );
         
         if (pr + pg + pb < 3) {
-            let imgData = ctx.getImageData(0, 0, headW, headH);
+            let imgData;
+            try {
+                imgData = ctx.getImageData(0, 0, headW, headH);
+            } catch (e) {
+                console.log(e);
+                return;
+            }
             for (let i = 0; i < imgData.data.length; i += 4) {
                 const r = imgData.data[i],
                     g = imgData.data[i+1],

@@ -137,7 +137,12 @@ class BoardRenderer {
       if (cog.icon.type === "blank") {
         div.style.backgroundImage = "";
         div.innerHTML = "";
-      } else {
+      } else if (cog.isPlayer) {
+        div.style.backgroundImage = `url("${cog.icon.path}")`;
+        div.style["background-size"] = `contain`;
+        div.innerHTML = "";
+      }	else {
+        div.style.removeProperty("background-size");
         div.style.backgroundImage = `url("${cog.icon.path}")`;
         div.innerHTML = "";
       }
