@@ -69,7 +69,7 @@ class Cog {
   position(keyNum) {
     const isDefault = keyNum === undefined;
     if (this._position && isDefault) return this._position;
-    keyNum = keyNum || Number.parseInt(this.key);
+    keyNum = isNaN(keyNum) ? Number.parseInt(this.key) : keyNum;
     // board = 0-95
     // build = 96-107
     // spare = 108-*
