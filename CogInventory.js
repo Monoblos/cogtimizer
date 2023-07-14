@@ -69,11 +69,7 @@ class Cog {
   position(keyNum) {
     const isDefault = keyNum === undefined;
     if (this._position && isDefault) return this._position;
-<<<<<<< Updated upstream
-    keyNum = keyNum || Number.parseInt(this.key);
-=======
     keyNum = keyNum ?? Number.parseInt(this.key);
->>>>>>> Stashed changes
     // board = 0-95
     // build = 96-107
     // spare = 108-*
