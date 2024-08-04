@@ -370,7 +370,7 @@ class CogInventory {
             boosted.push([k, j]);
           }
           break;
-        case "corner":
+        case "corners":
           boosted.push([i-2, j-2],[i-2, j+2],[i+2, j-2],[i+2, j+2]);
           break;
         case "around":
