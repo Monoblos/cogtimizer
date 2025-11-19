@@ -338,10 +338,16 @@
       function mmoifyNumber(num, addSign = true) {
         let str = num;
 
-        if (Math.abs(num) >= 1000000) {
-          str = (Math.ceil(num / 10000) / 100) + "M";
-        } else if (Math.abs(num) >= 1000) {
-          str = (Math.ceil(num / 10) / 100) + "K";
+        const abs = Math.abs(num);
+
+        if (abs >= 1_000_000_000_000) {
+            str = (Math.ceil(num / 10_000_000_000) / 100) + "T";
+        } else if (abs >= 1_000_000_000) {
+            str = (Math.ceil(num / 10_000_000) / 100) + "B";
+        } else if (abs >= 1_000_000) {
+            str = (Math.ceil(num / 10_000) / 100) + "M";
+        } else if (abs >= 1000) {
+            str = (Math.ceil(num / 10) / 100) + "K";
         }
 
         if (addSign && num >= 0) {
