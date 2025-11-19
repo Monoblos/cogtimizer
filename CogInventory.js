@@ -158,20 +158,24 @@ class CogInventory {
     foo[1] = "Beginner"; // White
     foo[2] = "Journeyman";
     foo[3] = "Maestro";
-    foo[7] = "Warrior"; // 
+    foo[4] = "Voidwalker";
+    foo[7] = "Warrior"; //
     foo[8] = "Barbarian";
     foo[9] = "Squire";
     foo[10] = "Blood Berserker";
     foo[12] = "Divine Knight";
-    foo[19] = "Archer"; // 
+    foo[14] = "Death Bringer";
+    foo[19] = "Archer"; //
     foo[20] = "Bowman";
     foo[21] = "Hunter";
     foo[22] = "Siege Breaker";
     foo[25] = "Beast Master";
-    foo[31] = "Mage"; // 
+    foo[29] = "Wind Walker";
+    foo[31] = "Mage"; //
     foo[32] = "Wizard";
     foo[33] = "Shaman";
     foo[34] = "Elemental Sorcerer";
+    foo[40] = "Arcane Cultist";
 
     const hatIcons = {};
     const playerNames = save["playerNames"];
