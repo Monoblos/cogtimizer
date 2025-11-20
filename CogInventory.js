@@ -34,6 +34,14 @@ const YIN_MAP = {
   ["A02"]: "Yin_Bottom_Left_Cog",
   ["A03"]: "Yin_Bottom_Right_Cog"
 };
+const Crystal_MAP = {
+  ["0"]: "Topaz",
+  ["1"]: "Ruby",
+  ["2"]: "Amethyst",
+  ["3"]: "Garnet",
+  ["4"]: "Emerald",
+  ["5"]: "BlueGem"
+};
 const INV_ROWS = 8;
 const INV_COLUMNS = 12;
 const SPARE_START = 108;
@@ -247,6 +255,10 @@ class CogInventory {
       } else if(c === "CogY") {
         icon.type = "cog";
         icon.path = "icons/cogs/Yang_Cog.png";
+      } else if (c.startsWith("CogCry")) {
+        icon.type = "cog";
+        const parsed = c.match(/^CogCry([0-5])$/);
+        icon.path = "icons/cogs/" + "Crystal_" + Crystal_MAP[parsed[1]] + ".png";
       } else {
         icon.type = "cog";
         const parsed=c.match(/^Cog([0123YZ])(.{2,3})$/);
